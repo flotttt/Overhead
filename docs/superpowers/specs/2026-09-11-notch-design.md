@@ -84,7 +84,7 @@ Le survol ouvre l'encoche dans tous les états où elle est visible, y compris l
 ╰──────────────────────────────────╯
 ```
 
-- Taille ouverte fixe (environ 360 × 160 pt, à ajuster à la vérification visuelle), la même pour les deux
+- Taille ouverte fixe (environ 380 × 190 pt, encoche comprise, à ajuster à la vérification visuelle), la même pour les deux
   onglets : pas de saut de taille en changeant d'onglet.
 - Coins inférieurs arrondis ; le haut se confond avec l'encoche.
 - **Casque non connecté** : « Non connecté » + bouton « Connecter », qui appelle `HeadphonesModel.connect()`
