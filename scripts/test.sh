@@ -13,6 +13,7 @@ echo "== LogicTests"
 swiftc -target "$TARGET" -sdk "$SDK" -swift-version 5 \
     "$ROOT/Client/tests/LogicTests/main.swift" \
     "$MAC/ReconnectPolicy.swift" "$MAC/PollGuard.swift" "$MAC/SendThrottle.swift" \
+    "$MAC/Notch/NotchGeometry.swift" "$MAC/Notch/NotchContent.swift" \
     -o "$OUT/LogicTests"
 "$OUT/LogicTests"
 
