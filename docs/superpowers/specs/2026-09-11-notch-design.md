@@ -286,8 +286,8 @@ Décidés avec l'utilisateur sur l'app en marche ; ils remplacent §4.2 et une p
   plate, durée totale ; boutons 🎧 ⏮ ⏯ ⏭ 🔀 🔊. 🎧 fait glisser le lecteur vers le panneau Casque (‹ retour) ;
   🔊 remplace la progression par la barre de volume Spotify, repliée après 4 s sans action. Le lecteur
   s'ouvre sur la page choisie en dernier (première ouverture : Musique s'il y a une musique, sinon Casque).
-- **Lecture aléatoire** : `shuffling` lu par `readState` (10ᵉ champ, `NowPlaying.isShuffling`) et basculé
-  par `set shuffling to …`. « J'aime » n'existe pas en local (étape 2).
+- **Lecture aléatoire** : ajoutée puis retirée (le bouton décentrait lecture/pause). « J'aime » n'existe pas
+  en local (étape 2).
 - **Taille ouverte 300 × 166 pt** ; coins du haut évasés vers la barre des menus.
 - **Aucun contrôle AppKit dans l'encoche** (sélecteur segmenté, `Slider`, `Toggle`, bouton bordé) : ils
   ignorent l'échelle et le découpage SwiftUI et débordaient à l'ouverture, au changement de page et à la

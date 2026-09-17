@@ -1,7 +1,7 @@
 import SwiftUI
 
 // Notch player page (spec §4.2): artwork, title and artist; progress; headphones, previous, play/pause, next,
-// shuffle. The volume button swaps the progress bar for Spotify's volume bar for a few seconds. Sizes follow
+// volume. The volume button swaps the progress bar for Spotify's volume bar for a few seconds. Sizes follow
 // the notch zoom; extra height grows the artwork.
 struct MusicTab: View {
     private static let volumeAutoHide: TimeInterval = 4
@@ -90,25 +90,21 @@ struct MusicTab: View {
             }
             .animation(NotchMotion.content, value: showVolume)
             Spacer(minLength: 6 * s)
+            // The side buttons take equal flexible widths, so previous / play / next stay centred on the notch.
             HStack(spacing: 0) {
                 iconButton("headphones", label: tr("Headphones"), action: showHeadphones)
-                Spacer()
-                iconButton("backward.fill", size: 17, color: .white, label: tr("Previous track")) { music.previous() }
-                Spacer()
-                iconButton(track.isPlaying ? "pause.fill" : "play.fill", size: 21, color: .white,
-                           label: tr("Play or pause")) { music.playPause() }
-                    .animation(NotchMotion.content, value: track.isPlaying)
-                Spacer()
-                iconButton("forward.fill", size: 17, color: .white, label: tr("Next track")) { music.next() }
-                Spacer()
-                iconButton("shuffle", color: track.isShuffling == true ? .white : .gray, label: tr("Shuffle")) {
-                    music.toggleShuffle()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: 22 * s) {
+                    iconButton("backward.fill", size: 17, color: .white, label: tr("Previous track")) { music.previous() }
+                    iconButton(track.isPlaying ? "pause.fill" : "play.fill", size: 21, color: .white,
+                               label: tr("Play or pause")) { music.playPause() }
+                        .animation(NotchMotion.content, value: track.isPlaying)
+                    iconButton("forward.fill", size: 17, color: .white, label: tr("Next track")) { music.next() }
                 }
-                .disabled(track.isShuffling == nil)
-                Spacer()
                 iconButton(showVolume ? "speaker.wave.2.fill" : "speaker.wave.2", color: showVolume ? .white : .gray,
                            label: tr("Spotify volume")) { toggleVolume() }
-                .disabled(!track.capabilities.canSetVolume || track.volume == nil)
+                    .disabled(!track.capabilities.canSetVolume || track.volume == nil)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
     }

@@ -18,7 +18,7 @@ enum SpotifyScript {
                 set sep to (character id 31)
                 set art to artwork url of t
                 if art is missing value then set art to ""
-                return playerState & sep & (id of t) & sep & (name of t) & sep & (artist of t) & sep & (album of t) & sep & ((duration of t) as text) & sep & ((((player position) * 1000) div 1) as text) & sep & art & sep & ((sound volume) as text) & sep & (shuffling as text)
+                return playerState & sep & (id of t) & sep & (name of t) & sep & (artist of t) & sep & (album of t) & sep & ((duration of t) as text) & sep & ((((player position) * 1000) div 1) as text) & sep & art & sep & ((sound volume) as text)
             end tell
         end timeout
         """

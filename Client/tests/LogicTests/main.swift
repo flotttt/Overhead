@@ -120,7 +120,7 @@ do {
     let t0 = Date(timeIntervalSince1970: 1_000)
     var track = NowPlaying(trackID: "spotify:track:1", title: "A", artist: "B", album: "C", artworkURL: nil,
                            duration: 200, position: 30, positionDate: t0, isPlaying: true, volume: 50,
-                           isShuffling: nil, deviceName: nil,
+                           deviceName: nil,
                            capabilities: MusicCapabilities(canSeek: true, canSetVolume: true, canChangeDevice: false))
     check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(12)) == 42, "playing: advances")
     check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(500)) == 200, "bounded by the duration")
@@ -132,7 +132,7 @@ do {
     check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(500)) == 530, "unknown duration: not bounded")
     let nextTrack = NowPlaying(trackID: "spotify:track:2", title: "D", artist: "E", album: "F", artworkURL: nil,
                                duration: 180, position: 0, positionDate: t0.addingTimeInterval(100), isPlaying: true,
-                               volume: 50, isShuffling: nil, deviceName: nil, capabilities: track.capabilities)
+                               volume: 50, deviceName: nil, capabilities: track.capabilities)
     check(PlaybackClock.position(of: nextTrack, at: t0.addingTimeInterval(100)) == 0, "track change: starts from 0")
     check(PlaybackClock.format(65) == "1:05", "format 1:05 was \(PlaybackClock.format(65))")
     check(PlaybackClock.format(754.9) == "12:34", "format rounds down")
@@ -150,8 +150,8 @@ do {
     if case .track(let track) = SpotifyPlaybackInfo.parse(signal: signal, at: t0) {
         check(track.trackID == "spotify:track:42" && track.title == "Midnight City" && track.artist == "M83", "signal: names")
         check(track.duration == 243 && track.position == 12.5 && track.positionDate == t0 && track.isPlaying, "signal: timing")
-        check(track.artworkURL == nil && track.volume == nil && track.isShuffling == nil && track.deviceName == nil,
-              "signal: no artwork, volume or shuffle, this Mac")
+        check(track.artworkURL == nil && track.volume == nil && track.deviceName == nil,
+              "signal: no artwork or volume, this Mac")
         check(track.capabilities == SpotifyPlaybackInfo.localCapabilities, "signal: local capabilities")
     } else {
         check(false, "signal with full info decodes to a track")
@@ -174,30 +174,22 @@ do {
     let t0 = Date(timeIntervalSince1970: 1_000)
     let sep = "\u{1F}"
     let text = ["paused", "spotify:track:7", "Title", "Artist", "Album", "180000", "61500",
-                "https://i.scdn.co/image/ab", "70", "true"].joined(separator: sep)
+                "https://i.scdn.co/image/ab", "70"].joined(separator: sep)
     if case .track(let track) = SpotifyPlaybackInfo.parse(scriptResult: text, at: t0) {
         check(!track.isPlaying && track.duration == 180 && track.position == 61.5, "script: timing")
         check(track.artworkURL == URL(string: "https://i.scdn.co/image/ab") && track.volume == 70, "script: artwork and volume")
-        check(track.isShuffling == true, "script: shuffle on")
         check(track.title == "Title" && track.album == "Album" && track.positionDate == t0, "script: names")
     } else {
         check(false, "script result decodes to a track")
     }
-    let local = ["playing", "spotify:local:x", "T", "", "", "1000", "0", "", "101", "false"].joined(separator: sep)
+    let local = ["playing", "spotify:local:x", "T", "", "", "1000", "0", "", "101"].joined(separator: sep)
     if case .track(let track) = SpotifyPlaybackInfo.parse(scriptResult: local, at: t0) {
         check(track.artworkURL == nil && track.volume == 100 && track.artist.isEmpty, "script: empty fields, volume clamped")
-        check(track.isShuffling == false, "script: shuffle off")
     } else {
         check(false, "script result with empty fields decodes to a track")
     }
     check(SpotifyPlaybackInfo.parse(scriptResult: "stopped", at: t0) == .stopped, "script: stopped")
     check(SpotifyPlaybackInfo.parse(scriptResult: "garbage", at: t0) == .incomplete, "script: malformed")
-    let unknownShuffle = ["playing", "spotify:track:8", "T", "A", "B", "1000", "0", "", "50", "?"].joined(separator: sep)
-    if case .track(let track) = SpotifyPlaybackInfo.parse(scriptResult: unknownShuffle, at: t0) {
-        check(track.isShuffling == nil, "script: unreadable shuffle is unknown")
-    } else {
-        check(false, "script result with an unreadable shuffle decodes to a track")
-    }
 }
 
 if failures > 0 {
