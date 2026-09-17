@@ -7,6 +7,7 @@ final class HeadphonesMenu {
     let menu = NSMenu()
     private let model: HeadphonesModel
     private let settings: AppSettings
+    private let updates: UpdateChecker
     private var cancellables = Set<AnyCancellable>()
 
     private let errorItem = NSMenuItem()
@@ -31,6 +32,7 @@ final class HeadphonesMenu {
     private var autoReconnectItem = NSMenuItem()
     private var showNotchItem = NSMenuItem()
     private let notchSizeItem = NSMenuItem()
+    private var updateItem = NSMenuItem()
     private let notchSizeMenuDelegate = NotchSizeMenuDelegate()
 
     private static var presets: [(Int, String)] {
@@ -54,9 +56,10 @@ final class HeadphonesMenu {
         return options
     }
 
-    init(model: HeadphonesModel, settings: AppSettings) {
+    init(model: HeadphonesModel, settings: AppSettings, updates: UpdateChecker) {
         self.model = model
         self.settings = settings
+        self.updates = updates
         menu.autoenablesItems = false
         menu.minimumWidth = MenuMetrics.width
 
@@ -76,6 +79,10 @@ final class HeadphonesMenu {
             .sink { [weak self] _ in self?.update() }
             .store(in: &cancellables)
         settings.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.update() }
+            .store(in: &cancellables)
+        updates.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.update() }
             .store(in: &cancellables)
@@ -168,6 +175,8 @@ final class HeadphonesMenu {
         connectItem = ActionMenuItem(tr("Connect…")) { [weak self] in self?.toggleConnection() }
         menu.addItem(connectItem)
         menu.addItem(.separator())
+        updateItem = ActionMenuItem("") { [weak updates] in updates?.openReleasePage() }
+        menu.addItem(updateItem)
         menu.addItem(ActionMenuItem(tr("Quit SonyNotch"), key: "q") { NSApp.terminate(nil) })
     }
 
@@ -225,6 +234,10 @@ final class HeadphonesMenu {
         autoReconnectItem.state = settings.autoReconnect ? .on : .off
         showNotchItem.state = settings.showNotch ? .on : .off
         notchSizeItem.isEnabled = settings.showNotch
+        updateItem.isHidden = updates.available == nil
+        if let release = updates.available {
+            updateItem.title = String(format: tr("Update Available: SonyNotch %@…"), release.tag.hasPrefix("v") ? String(release.tag.dropFirst()) : release.tag)
+        }
     }
 
     // Options › Notch Size: sliders applied live, the notch staying open as a preview while the submenu is open.

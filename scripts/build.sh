@@ -20,7 +20,7 @@ if [ "$CONFIG" = release ]; then SWIFT_OPT="-O"; CXX_OPT="-O2"; else SWIFT_OPT="
 SWIFT_DEFINES=""; CXX_DEFINES=""
 if [ "${DEBUG_PROTOCOL:-0}" = 1 ]; then SWIFT_DEFINES="-D DEBUG_PROTOCOL"; CXX_DEFINES="-DSHC_DEBUG_PROTOCOL"; fi
 
-SWIFT_SOURCES=("$MAC"/*.swift "$MAC"/MenuRows/*.swift "$MAC"/Notch/*.swift "$MAC"/Music/*.swift)
+SWIFT_SOURCES=("$MAC"/*.swift "$MAC"/MenuRows/*.swift "$MAC"/Notch/*.swift "$MAC"/Updates/*.swift "$MAC"/Music/*.swift)
 CXX_SOURCES=("$CORE"/*.cpp)
 OBJCXX_SOURCES=("$MAC"/*.mm)
 

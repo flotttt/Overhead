@@ -3,7 +3,8 @@ name: Release
 # Push a version tag to publish a release:
 #   git tag v1.0.0 && git push origin v1.0.0
 # The app gets its version from the tag, is tested and built for Apple Silicon and Intel, and the zip is attached
-# to a GitHub release with its SHA-256 (used by the Homebrew cask).
+# to a GitHub release with its SHA-256. The Homebrew cask in flotttt/homebrew-tap is then pointed at the new
+# version (needs the HOMEBREW_TAP_TOKEN secret, skipped without it).
 
 on:
   push:
@@ -48,3 +49,22 @@ jobs:
               --title "SonyNotch $VERSION" \
               --generate-notes
           fi
+
+      - name: Update the Homebrew cask
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "HOMEBREW_TAP_TOKEN isn't set, the Homebrew cask isn't updated."
+            exit 0
+          fi
+          FILE=Casks/sonynotch.rb
+          SHA256=$(cut -d ' ' -f 1 build/SonyNotch.zip.sha256)
+          gh api "repos/flotttt/homebrew-tap/contents/$FILE" > current.json
+          jq -r .content current.json | base64 -D > sonynotch.rb
+          sed -i '' -E "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$SHA256\"/" sonynotch.rb
+          gh api -X PUT "repos/flotttt/homebrew-tap/contents/$FILE" \
+            -f message="sonynotch $VERSION" \
+            -f content="$(base64 -i sonynotch.rb)" \
+            -f sha="$(jq -r .sha current.json)" > /dev/null
+          echo "Homebrew cask updated to $VERSION"
