@@ -29,6 +29,7 @@ final class HeadphonesMenu {
     private var launchAtLoginItem = NSMenuItem()
     private var autoConnectItem = NSMenuItem()
     private var autoReconnectItem = NSMenuItem()
+    private var showNotchItem = NSMenuItem()
 
     private static var presets: [(Int, String)] {
         [(0x00, tr("Off")), (0x10, tr("Bright")), (0x11, tr("Excited")), (0x12, tr("Mellow")),
@@ -156,7 +157,8 @@ final class HeadphonesMenu {
         launchAtLoginItem = ActionMenuItem(tr("Launch at Login")) { [weak self] in self?.toggleLaunchAtLogin() }
         autoConnectItem = ActionMenuItem(tr("Connect Automatically")) { [weak settings] in settings?.autoConnect.toggle() }
         autoReconnectItem = ActionMenuItem(tr("Reconnect Automatically")) { [weak settings] in settings?.autoReconnect.toggle() }
-        for item in [launchAtLoginItem, autoConnectItem, autoReconnectItem] { optionsMenu.addItem(item) }
+        showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
+        for item in [launchAtLoginItem, autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
         let optionsItem = NSMenuItem(title: tr("SonyBridge Options"), action: nil, keyEquivalent: "")
         optionsItem.submenu = optionsMenu
         menu.addItem(optionsItem)
@@ -218,6 +220,7 @@ final class HeadphonesMenu {
         launchAtLoginItem.state = settings.launchAtLogin ? .on : .off
         autoConnectItem.state = settings.autoConnect ? .on : .off
         autoReconnectItem.state = settings.autoReconnect ? .on : .off
+        showNotchItem.state = settings.showNotch ? .on : .off
     }
 
     private func updateAbout() {
