@@ -16,7 +16,7 @@ struct NotchGeometry: Equatable {
     static let sideExtension: CGFloat = 36          // resting widening on each side (states 1-3)
     static let simulatedWidth: CGFloat = 190        // pill width on a screen without a notch
     static let fallbackMenuBarHeight: CGFloat = 24  // pill height when the menu bar auto-hides
-    static let openSize = CGSize(width: 380, height: 190)
+    static let openSize = CGSize(width: 300, height: 166)
 
     let hasNotch: Bool
     let notch: CGRect

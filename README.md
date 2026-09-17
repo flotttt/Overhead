@@ -42,6 +42,9 @@ menu bar app, built with AppKit/SwiftUI.
 - 🎚️ **Ambient Sound Control** — Noise Cancelling · Ambient Sound (with a 1–20 level slider (1–19 on older models) and a Focus on Voice switch) · Off
 - 🔄 **Live button sync** — following the headset's own NC button live, even while the menu is open
 
+**Notch**
+- 🏝️ **Notch panel** — hover the MacBook notch (or a black pill at the top of screens without one) to control the music playing in **Spotify** (artwork, play/pause, previous/next, seek, shuffle, volume) and, behind its headphones button, switch Noise Cancelling / Ambient Sound / Off. Turn it off with **Show Notch** under **SonyBridge Options**
+
 **Equalizer**
 - 🎛️ **Equalizer** — presets *and* a **Manual mode** with vertical sliders (5 bands + Clear Bass on older models). The **WH-1000XM6**'s 10-band equalizer is read and displayed; changing the equalizer (presets and Manual) is coming in a later update — its write format isn't verified yet, so the presets and sliders are greyed out with a "coming soon" note
 
@@ -84,6 +87,9 @@ make install
 
 > 💡 On first launch, macOS asks for **Bluetooth permission** — allow it, otherwise SonyBridge can't
 > talk to your headphones. Pair and connect your headphones in macOS **Bluetooth settings** first.
+>
+> 🎵 With the notch on, macOS also asks whether SonyBridge may **control Spotify** — allow it to see and
+> control your music from the notch (Spotify's own desktop app, no account needed).
 
 **To update:** pull the latest changes and run `make install` again.
 
@@ -103,7 +109,8 @@ From the menu you can:
 - toggle **DSEE**, **Speak-to-Chat**, and **Adaptive Volume** (only the ones your model supports);
 - set **Auto Power-Off**;
 - check the battery level in the menu's header, and the firmware, codec and protocol under **About the Headphones**;
-- turn **Launch at Login**, **Connect Automatically**, and **Reconnect Automatically** on or off under **SonyBridge Options**;
+- hover the **notch** to control Spotify and switch sound modes without opening the menu;
+- turn **Launch at Login**, **Connect Automatically**, **Reconnect Automatically**, and **Show Notch** on or off under **SonyBridge Options**;
 - **Disconnect** (SonyBridge then stays disconnected until you click **Connect…** again or — with **Connect Automatically** on — the headset reconnects to your Mac) or **Quit SonyBridge** (⌘Q).
 
 ## 🎧 Supported headphones

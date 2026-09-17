@@ -30,16 +30,17 @@ enum SpotifyPlaybackInfo {
             positionDate: date,
             isPlaying: state == "Playing",
             volume: nil,
+            isShuffling: nil,
             deviceName: nil,
             capabilities: localCapabilities))
     }
 
-    // SpotifyScript.readState's reply: "stopped", or 9 fields separated by U+001F — state, track id, name,
-    // artist, album, duration (ms), position (ms), artwork URL, volume.
+    // SpotifyScript.readState's reply: "stopped", or 10 fields separated by U+001F — state, track id, name,
+    // artist, album, duration (ms), position (ms), artwork URL, volume, shuffling ("true" / "false").
     static func parse(scriptResult text: String, at date: Date) -> SpotifyState {
         if text == "stopped" { return .stopped }
         let fields = text.split(separator: fieldSeparator, omittingEmptySubsequences: false).map(String.init)
-        guard fields.count == 9, fields[0] == "playing" || fields[0] == "paused", !fields[1].isEmpty else {
+        guard fields.count == 10, fields[0] == "playing" || fields[0] == "paused", !fields[1].isEmpty else {
             return .incomplete
         }
         return .track(NowPlaying(
@@ -53,6 +54,7 @@ enum SpotifyPlaybackInfo {
             positionDate: date,
             isPlaying: fields[0] == "playing",
             volume: Int(fields[8]).map { min(100, max(0, $0)) },
+            isShuffling: fields[9] == "true" ? true : fields[9] == "false" ? false : nil,
             deviceName: nil,
             capabilities: localCapabilities))
     }

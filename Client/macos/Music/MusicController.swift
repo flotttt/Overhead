@@ -8,7 +8,10 @@ final class MusicController: ObservableObject {
 
     @Published private(set) var status: MusicSourceStatus = .notRunning
     @Published private(set) var nowPlaying: NowPlaying?
-    @Published private(set) var artwork: NSImage?
+    @Published private(set) var artwork: NSImage? {
+        didSet { artworkTint = artwork.flatMap(Self.tint(of:)) }
+    }
+    @Published private(set) var artworkTint: NSColor?  // vivid average colour of the artwork
 
     // Something to show: a track, playing or paused (even without the right to control it).
     var hasMusic: Bool { status != .notRunning && nowPlaying != nil }
@@ -82,6 +85,11 @@ final class MusicController: ObservableObject {
         if final { source.refresh() }
     }
 
+    func toggleShuffle() {
+        guard let shuffling = nowPlaying?.isShuffling else { return }
+        source.setShuffling(!shuffling)
+    }
+
     func launchPlayer() { source.launchPlayer() }
 
     func openAutomationSettings() {
@@ -136,6 +144,24 @@ final class MusicController: ObservableObject {
                 self.artwork = image
             }
         }.resume()
+    }
+
+    // The artwork's average colour, pushed bright and saturated enough to read on black.
+    private static func tint(of image: NSImage) -> NSColor? {
+        guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let context = CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
+              let data = context.data else { return nil }
+        context.interpolationQuality = .medium
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        let pixel = data.assumingMemoryBound(to: UInt8.self)
+        let average = NSColor(srgbRed: CGFloat(pixel[0]) / 255, green: CGFloat(pixel[1]) / 255,
+                              blue: CGFloat(pixel[2]) / 255, alpha: 1)
+        // A grey artwork has no meaningful hue (it would come out red): keep it light grey.
+        guard average.saturationComponent >= 0.12 else { return NSColor(white: 0.85, alpha: 1) }
+        return NSColor(hue: average.hueComponent, saturation: max(average.saturationComponent, 0.55),
+                       brightness: max(average.brightnessComponent, 0.85), alpha: 1)
     }
 
     private func remember(_ image: NSImage, for url: URL) {

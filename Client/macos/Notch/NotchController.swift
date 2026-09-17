@@ -2,10 +2,15 @@ import AppKit
 import Combine
 import SwiftUI
 
-// Owns the notch panel (spec §4.3): picks the screen, places and resizes the panel, opens it on hover and
-// follows the "Show Notch" option.
+// Owns the notch panel (spec §4.3): picks the screen, places the panel, opens it on hover and follows the
+// "Show Notch" option.
+//
+// The panel always keeps the open size: only the SwiftUI shape inside animates. Resizing the window on open
+// and close showed a frame of stale content at the new size (things jumped outward, then back). While
+// closed, the panel lets every click through, and hover is followed from the pointer position instead of
+// tracking areas.
 final class NotchController {
-    private static let shrinkDelay: TimeInterval = 0.35  // lets the closing animation end before the panel shrinks
+    private static let unmountDelay: TimeInterval = 0.4  // lets the closing spring settle first
 
     private let model: HeadphonesModel
     private let music: MusicController
@@ -14,8 +19,11 @@ final class NotchController {
     private let panel = NotchPanel.make()
     private var geometry: NotchGeometry?
     private var lastChosenTab: NotchTab?
+    private var pointerInside = false
     private var hoverTimer: Timer?
-    private var shrinkWork: DispatchWorkItem?
+    private var hideWork: DispatchWorkItem?
+    private var unmountWork: DispatchWorkItem?
+    private var mouseMonitors: [Any] = []
     private var cancellables = Set<AnyCancellable>()
 
     init(model: HeadphonesModel, music: MusicController, settings: AppSettings) {
@@ -28,8 +36,23 @@ final class NotchController {
                                                         selectTab: { [weak self] tab in self?.select(tab) }))
         host.autoresizingMask = [.width, .height]
         container.addSubview(host)
-        container.onHoverChange = { [weak self] in self?.scheduleHoverCheck() }
+        container.onHoverChange = { [weak self] in self?.pointerMoved() }
         panel.contentView = container
+        panel.acceptsMouseMovedEvents = true
+        panel.ignoresMouseEvents = true
+
+        // Global: the pointer over other apps (the notch is closed, the panel ignores the mouse). Local: over
+        // our own windows, the open panel included.
+        let events: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged]
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: events, handler: { [weak self] _ in self?.pointerMoved() }) {
+            mouseMonitors.append(global)
+        }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: events, handler: { [weak self] event in
+            self?.pointerMoved()
+            return event
+        }) {
+            mouseMonitors.append(local)
+        }
 
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .receive(on: DispatchQueue.main)
@@ -46,6 +69,10 @@ final class NotchController {
             .store(in: &cancellables)
     }
 
+    deinit {
+        mouseMonitors.forEach(NSEvent.removeMonitor)
+    }
+
     // MARK: - Placement
 
     private func relayout() {
@@ -55,7 +82,10 @@ final class NotchController {
                 state.isOpen = false
                 music.notchDidClose()
             }
-            shrinkWork?.cancel()
+            unmountWork?.cancel()
+            state.openContentMounted = false
+            panel.ignoresMouseEvents = true
+            hideWork?.cancel()
             panel.orderOut(nil)
             return
         }
@@ -63,7 +93,7 @@ final class NotchController {
         self.geometry = geometry
         state.notchHeight = geometry.notch.height
         state.openSize = geometry.open.size
-        if state.isOpen { panel.setFrame(geometry.open, display: true) }
+        panel.setFrame(geometry.open, display: true)
         updateResting()
     }
 
@@ -77,48 +107,34 @@ final class NotchController {
         let resting = NotchContent.restingState(hasMusic: music.hasMusic, headphonesConnected: model.connected)
         let frame = geometry.restingFrame(for: resting)
         if state.resting != resting || (frame != nil && state.restingSize != frame?.size) {
-            withAnimation(animation) {
+            withAnimation(state.isOpen ? NotchMotion.open : NotchMotion.close) {
                 state.resting = resting
                 if let frame = frame { state.restingSize = frame.size }
             }
         }
-        guard !state.isOpen else { return }  // close() re-applies the resting frame
-        if let frame = frame {
-            setPanelFrame(frame)
+        hideWork?.cancel()
+        if frame != nil || state.isOpen {
             panel.orderFrontRegardless()
-        } else {
-            hidePanel(after: panel.isVisible ? Self.shrinkDelay : 0)
+        } else if panel.isVisible {
+            // Nothing to show on a screen without a notch: hide once the shape has shrunk away.
+            let work = DispatchWorkItem { [weak self] in
+                guard let self = self, !self.state.isOpen else { return }
+                self.panel.orderOut(nil)
+            }
+            hideWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.unmountDelay, execute: work)
         }
-    }
-
-    // Grows at once (the shape then animates inside the larger panel) or shrinks once the animation is over,
-    // so the transparent panel never blocks the menu bar longer than needed.
-    private func setPanelFrame(_ target: CGRect) {
-        shrinkWork?.cancel()
-        let current = panel.frame
-        if !panel.isVisible || (target.width >= current.width && target.height >= current.height) {
-            panel.setFrame(target, display: true)
-        } else {
-            let work = DispatchWorkItem { [weak self] in self?.panel.setFrame(target, display: true) }
-            shrinkWork = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + Self.shrinkDelay, execute: work)
-        }
-    }
-
-    private func hidePanel(after delay: TimeInterval) {
-        shrinkWork?.cancel()
-        let work = DispatchWorkItem { [weak self] in self?.panel.orderOut(nil) }
-        shrinkWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
     }
 
     // MARK: - Hover
 
-    // Enter/exit events only schedule a check; the check reads the real pointer position, so a missed event
-    // can't leave the notch stuck open or closed.
-    private func scheduleHoverCheck() {
+    // Only a change of side (in / out) starts the timer, so moving inside doesn't keep postponing the opening;
+    // the timer then reads the real pointer position, so a missed event can't leave the notch stuck.
+    private func pointerMoved() {
+        let inside = isPointerInHoverZone
+        guard inside != pointerInside else { return }
+        pointerInside = inside
         hoverTimer?.invalidate()
-        let inside = hoverZone.contains(NSEvent.mouseLocation)
         let delay = inside ? NotchContent.openDelay : NotchContent.closeDelay
         let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in self?.hoverCheck() }
         RunLoop.main.add(timer, forMode: .common)
@@ -126,7 +142,8 @@ final class NotchController {
     }
 
     private func hoverCheck() {
-        let inside = panel.isVisible && hoverZone.contains(NSEvent.mouseLocation)
+        let inside = isPointerInHoverZone
+        pointerInside = inside
         if inside && !state.isOpen {
             open()
         } else if !inside && state.isOpen {
@@ -134,36 +151,41 @@ final class NotchController {
         }
     }
 
-    private var hoverZone: CGRect {
-        guard let geometry = geometry else { return .zero }
-        return state.isOpen ? geometry.open : (geometry.restingFrame(for: state.resting) ?? .zero)
+    private var isPointerInHoverZone: Bool {
+        guard panel.isVisible, let geometry = geometry else { return false }
+        let zone = state.isOpen ? geometry.open : (geometry.restingFrame(for: state.resting) ?? .zero)
+        return zone.contains(NSEvent.mouseLocation)
     }
 
     private func open() {
-        guard let geometry = geometry else { return }
-        state.tab = NotchContent.tabOnOpen(lastChosen: lastChosenTab, hasMusic: music.hasMusic)
-        setPanelFrame(geometry.open)
+        unmountWork?.cancel()
+        hideWork?.cancel()
+        if !state.openContentMounted { state.tab = NotchContent.tabOnOpen(lastChosen: lastChosenTab, hasMusic: music.hasMusic) }
+        state.openContentMounted = true
+        panel.ignoresMouseEvents = false
         panel.orderFrontRegardless()
-        withAnimation(animation) { state.isOpen = true }
+        withAnimation(NotchMotion.open) { state.isOpen = true }
         music.notchDidOpen()
     }
 
     private func close() {
-        withAnimation(animation) { state.isOpen = false }
+        panel.ignoresMouseEvents = true  // clicks reach the apps below while the shape shrinks
+        withAnimation(NotchMotion.close) { state.isOpen = false }
         music.notchDidClose()
         updateResting()
+        // The open content shrinks and fades with the shape (it stays mounted while closing), then leaves the
+        // hierarchy so its timelines stop.
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self, !self.state.isOpen else { return }
+            self.state.openContentMounted = false
+        }
+        unmountWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.unmountDelay, execute: work)
     }
 
     private func select(_ tab: NotchTab) {
         lastChosenTab = tab
-        state.tab = tab
-    }
-
-    // Spring, or a short fade-like ease when "Reduce motion" is on.
-    private var animation: Animation {
-        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-            ? .easeInOut(duration: 0.15)
-            : .spring(response: 0.35, dampingFraction: 0.82)
+        withAnimation(NotchMotion.content) { state.tab = tab }
     }
 }
 

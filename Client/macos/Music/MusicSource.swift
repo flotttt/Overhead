@@ -18,5 +18,6 @@ protocol MusicSource: AnyObject {
     func previous()
     func seek(to seconds: TimeInterval)
     func setVolume(_ volume: Int)
+    func setShuffling(_ on: Bool)
     func launchPlayer()
 }

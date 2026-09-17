@@ -108,6 +108,14 @@ final class SpotifyLocalSource: MusicSource {
         send("set sound volume to \(clamped)")
     }
 
+    func setShuffling(_ on: Bool) {
+        if var track = nowPlaying {
+            track.isShuffling = on
+            publish(status, track)
+        }
+        send("set shuffling to \(on)")
+    }
+
     func launchPlayer() {
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.bundleIdentifier) else {
             fputs("[spotify] Spotify isn't installed\n", stderr)
@@ -142,10 +150,12 @@ final class SpotifyLocalSource: MusicSource {
             publish(denied ? .permissionDenied : .ready, nil)
         case .track(var track):
             // Artwork and volume only come from Apple Events: keep them for the same track, read them otherwise.
+            // Shuffle belongs to the player, not the track: always keep it.
             if let current = nowPlaying, current.trackID == track.trackID {
                 track.artworkURL = current.artworkURL
                 track.volume = current.volume
             }
+            track.isShuffling = nowPlaying?.isShuffling
             publish(denied ? .permissionDenied : .ready, track)
             if track.artworkURL == nil && !denied { refresh() }
         case .incomplete:

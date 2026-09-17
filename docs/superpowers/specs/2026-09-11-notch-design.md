@@ -276,3 +276,25 @@ Sources : [quotas Spotify](https://developer.spotify.com/documentation/web-api/c
 3. Onglet Casque branché sur `HeadphonesModel` + option « Afficher l'encoche ».
 4. Source Spotify locale + `MusicController` + onglet Musique + autorisations.
 5. États au repos complets, animations, vérification visuelle et matérielle.
+
+## 12. Changements pendant l'implémentation (2026-09-17)
+
+Décidés avec l'utilisateur sur l'app en marche ; ils remplacent §4.2 et une partie de §4.3.
+
+- **Plus d'onglets.** L'encoche ouverte est un lecteur façon « Dynamic Island » (maquette fournie par
+  l'utilisateur) : pochette, titre, artiste et petites barres à la couleur de la pochette ; temps écoulé, barre
+  plate, durée totale ; boutons 🎧 ⏮ ⏯ ⏭ 🔀 🔊. 🎧 fait glisser le lecteur vers le panneau Casque (‹ retour) ;
+  🔊 remplace la progression par la barre de volume Spotify, repliée après 4 s sans action. Le lecteur
+  s'ouvre sur la page choisie en dernier (première ouverture : Musique s'il y a une musique, sinon Casque).
+- **Lecture aléatoire** : `shuffling` lu par `readState` (10ᵉ champ, `NowPlaying.isShuffling`) et basculé
+  par `set shuffling to …`. « J'aime » n'existe pas en local (étape 2).
+- **Taille ouverte 300 × 166 pt** ; coins du haut évasés vers la barre des menus.
+- **Aucun contrôle AppKit dans l'encoche** (sélecteur segmenté, `Slider`, `Toggle`, bouton bordé) : ils
+  ignorent l'échelle et le découpage SwiftUI et débordaient à l'ouverture, au changement de page et à la
+  fermeture. Remplacés par `ModePicker`, `FlatSlider`, `NotchSwitch`, `NotchPillButton`.
+- **Fenêtre de taille fixe** : le panneau garde la taille ouverte, seule la forme s'anime ; fermé, il laisse
+  passer les clics (`ignoresMouseEvents`) et le survol suit la position du pointeur (moniteurs d'événements
+  global et local). Redimensionner la fenêtre affichait une image de contenu décalé.
+- **Animations** (`NotchMotion`) : le contenu grandit et rétrécit avec la forme (même ressort, sans flou) ;
+  il reste monté pendant la fermeture puis est retiré ; la bande du repos a une largeur fixe et revient en
+  fondu. Vérifié par captures d'écran à 60/120 images par seconde.

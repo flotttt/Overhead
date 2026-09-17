@@ -60,6 +60,19 @@
 "Couldn't open the control channel." = "Impossible d’ouvrir le canal de contrôle.";
 
 /* Notch (Notch/*.swift) */
-"Music" = "Musique";
 "Headphones" = "Casque";
 "Level" = "Niveau";
+"Spotify isn't open" = "Spotify n’est pas ouvert";
+"Open Spotify" = "Ouvrir Spotify";
+"SonyBridge isn't allowed to control Spotify." = "SonyBridge n’a pas l’autorisation de contrôler Spotify.";
+"Open Settings" = "Ouvrir les réglages";
+"Nothing playing" = "Rien en cours de lecture";
+"Previous track" = "Morceau précédent";
+"Play or pause" = "Lecture ou pause";
+"Next track" = "Morceau suivant";
+"Shuffle" = "Lecture aléatoire";
+"Spotify volume" = "Volume de Spotify";
+"Back" = "Retour";
+"Voice" = "Voix";
+"NC" = "Réduction";
+"Ambient" = "Ambiant";
