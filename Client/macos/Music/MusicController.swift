@@ -85,11 +85,6 @@ final class MusicController: ObservableObject {
         if final { source.refresh() }
     }
 
-    func toggleShuffle() {
-        guard let shuffling = nowPlaying?.isShuffling else { return }
-        source.setShuffling(!shuffling)
-    }
-
     func launchPlayer() { source.launchPlayer() }
 
     func openAutomationSettings() {

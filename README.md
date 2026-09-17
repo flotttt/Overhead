@@ -52,7 +52,7 @@ Move the pointer over the notch and it opens into a player with:
 
 - the artwork, title and artist
 - a progress bar you can click or drag
-- previous, play/pause, next and shuffle
+- previous, play/pause and next
 - a volume button for Spotify's volume
 - a headphones button to change the sound mode without opening the menu
 
@@ -142,7 +142,7 @@ detects which one when it connects. The byte layouts were checked against the So
 [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge).
 
 For the notch, Spotify posts a system notification on every playback change, and SonyNotch asks the app for
-the artwork, volume and shuffle state with AppleScript. Nothing is polled while the notch is closed.
+the artwork and volume with AppleScript. Nothing is polled while the notch is closed.
 
 ## Origins
 

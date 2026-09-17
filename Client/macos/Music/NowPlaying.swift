@@ -20,7 +20,6 @@ struct NowPlaying: Equatable {
     var positionDate: Date
     var isPlaying: Bool
     var volume: Int?             // 0...100; nil until known
-    var isShuffling: Bool?       // nil until known
     var deviceName: String?      // nil = this Mac
     var capabilities: MusicCapabilities
 }
