@@ -200,6 +200,19 @@ do {
     check(ReleaseInfo.parse(json: Data("{}".utf8)) == nil, "malformed reply")
 }
 
+// BatteryDisplay: which level the closed notch shows, and its colour.
+do {
+    check(BatteryDisplay.level(single: 80, dual: false, left: -1, right: -1) == 80, "headphones: their level")
+    check(BatteryDisplay.level(single: -1, dual: true, left: 70, right: 40) == 40, "earbuds: the lower one")
+    check(BatteryDisplay.level(single: 90, dual: true, left: -1, right: 55) == 55, "earbuds: a missing side is ignored")
+    check(BatteryDisplay.level(single: -1, dual: false, left: -1, right: -1) == nil, "unknown level")
+    check(BatteryDisplay.level(single: 120, dual: false, left: -1, right: -1) == 100, "clamped to 100")
+    check(BatteryDisplay.tone(level: 50, charging: false) == .normal, "normal")
+    check(BatteryDisplay.tone(level: 20, charging: false) == .low && BatteryDisplay.tone(level: 10, charging: false) == .critical,
+          "low at 20 %, critical at 10 %")
+    check(BatteryDisplay.tone(level: 5, charging: true) == .charging, "charging wins")
+}
+
 // PlaybackClock: live position from the last known one; display format.
 do {
     let t0 = Date(timeIntervalSince1970: 1_000)

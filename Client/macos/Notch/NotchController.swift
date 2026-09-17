@@ -108,6 +108,9 @@ final class NotchController {
         settings.$progressRing
             .sink { [weak self] in self?.state.progressRing = $0 }
             .store(in: &cancellables)
+        settings.$headphonesBattery
+            .sink { [weak self] in self?.state.headphonesBattery = $0 }
+            .store(in: &cancellables)
         settings.$glowSize
             .sink { [weak self] in self?.state.glowSize = CGFloat($0) }
             .store(in: &cancellables)

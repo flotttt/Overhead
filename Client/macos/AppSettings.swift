@@ -19,6 +19,7 @@ final class AppSettings: ObservableObject {
         static let reverseScroll = "gestureReverseScroll"
         static let artworkGlow = "artworkGlow"
         static let progressRing = "progressRing"
+        static let headphonesBattery = "headphonesBattery"
         static let glowSize = "glowSize"
         static let hapticOnOpen = "hapticOnOpen"
         static let hapticOnButtons = "hapticOnButtons"
@@ -53,6 +54,7 @@ final class AppSettings: ObservableObject {
     @Published var reverseScroll: Bool { didSet { defaults.set(reverseScroll, forKey: Keys.reverseScroll) } }
     @Published var artworkGlow: Bool { didSet { defaults.set(artworkGlow, forKey: Keys.artworkGlow) } }
     @Published var progressRing: Bool { didSet { defaults.set(progressRing, forKey: Keys.progressRing) } }
+    @Published var headphonesBattery: Bool { didSet { defaults.set(headphonesBattery, forKey: Keys.headphonesBattery) } }
     @Published var glowSize: Double { didSet { defaults.set(glowSize, forKey: Keys.glowSize) } }
     static let glowSizeRange: ClosedRange<CGFloat> = 0.5...1.75  // times the default glow size
     @Published var hapticOnOpen: Bool { didSet { defaults.set(hapticOnOpen, forKey: Keys.hapticOnOpen) } }
@@ -93,7 +95,7 @@ final class AppSettings: ObservableObject {
             Keys.notchSide: Double(layout.sideExtension), Keys.notchZoom: Double(layout.zoom),
             Keys.notchArtwork: Double(layout.restingArtwork),
             Keys.swipeToSkip: true, Keys.scrollForVolume: true, Keys.reverseSwipe: false, Keys.reverseScroll: false,
-            Keys.artworkGlow: true, Keys.progressRing: true, Keys.glowSize: 1.0, Keys.hapticOnOpen: true, Keys.hapticOnButtons: true, Keys.hapticOnSkip: true, Keys.hapticOnVolume: true,
+            Keys.artworkGlow: true, Keys.progressRing: true, Keys.headphonesBattery: true, Keys.glowSize: 1.0, Keys.hapticOnOpen: true, Keys.hapticOnButtons: true, Keys.hapticOnSkip: true, Keys.hapticOnVolume: true,
             Keys.hapticStrength: 2,
         ])
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
@@ -110,6 +112,7 @@ final class AppSettings: ObservableObject {
         reverseScroll = defaults.bool(forKey: Keys.reverseScroll)
         artworkGlow = defaults.bool(forKey: Keys.artworkGlow)
         progressRing = defaults.bool(forKey: Keys.progressRing)
+        headphonesBattery = defaults.bool(forKey: Keys.headphonesBattery)
         glowSize = defaults.double(forKey: Keys.glowSize)
         hapticOnOpen = defaults.bool(forKey: Keys.hapticOnOpen)
         hapticOnButtons = defaults.bool(forKey: Keys.hapticOnButtons)

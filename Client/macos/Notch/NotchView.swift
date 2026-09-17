@@ -9,6 +9,7 @@ final class NotchViewState: ObservableObject {
     @Published var scrolledVolume: Int?         // Spotify volume being set by scrolling over the notch
     @Published var artworkGlow = true           // Options › Glow
     @Published var progressRing = true          // Options › Progress Ring
+    @Published var headphonesBattery = true     // Options › Headphones Battery
     @Published var glowSize: CGFloat = 1        // times the default glow size
     @Published var resting: NotchRestingState = .empty
     @Published var tab: NotchTab = .music
@@ -121,7 +122,10 @@ struct NotchView: View {
                     }
                 }
         case .headphonesOnly:
-            Image(systemName: "headphones").font(.system(size: 13 * state.restingScale)).foregroundColor(.white)
+            // With the battery shown on the right, the mode moves here.
+            Image(systemName: batteryLevel != nil ? Self.modeSymbol(model.mode) : "headphones")
+                .font(.system(size: 13 * state.restingScale))
+                .foregroundColor(.white)
         case .empty:
             EmptyView()
         }
@@ -130,12 +134,27 @@ struct NotchView: View {
     @ViewBuilder private var trailingItem: some View {
         switch state.resting {
         case .musicAndHeadphones, .musicOnly:
-            RestingMusicControl(music: music, hovered: state.trailingHovered)
+            RestingMusicControl(music: music, hovered: state.trailingHovered,
+                                battery: state.resting == .musicAndHeadphones ? batteryLevel : nil,
+                                charging: model.batteryCharging,
+                                batterySize: min(state.sideExtension - 6, state.notchHeight - 6))
         case .headphonesOnly:
-            Image(systemName: Self.modeSymbol(model.mode)).font(.system(size: 13 * state.restingScale)).foregroundColor(.white)
+            if let level = batteryLevel {
+                BatteryRing(level: level, tone: BatteryDisplay.tone(level: level, charging: model.batteryCharging),
+                            size: min(state.sideExtension - 6, state.notchHeight - 6))
+            } else {
+                Image(systemName: Self.modeSymbol(model.mode)).font(.system(size: 13 * state.restingScale)).foregroundColor(.white)
+            }
         case .empty:
             EmptyView()
         }
+    }
+
+    // The level to show on the closed notch, nil when the battery option is off or nothing is known yet.
+    private var batteryLevel: Int? {
+        guard state.headphonesBattery else { return nil }
+        return BatteryDisplay.level(single: model.batteryLevel, dual: model.hasDualBattery,
+                                    left: model.batteryLeft, right: model.batteryRight)
     }
 
     private static func modeSymbol(_ mode: SHCAmbientMode) -> String {
@@ -308,6 +327,44 @@ final class ArtworkFlip: ObservableObject {
     }
 }
 
+// The headphones' battery on the closed notch: a ring filled to the level with the percentage inside, orange when
+// low, red when critical, green while charging.
+private struct BatteryRing: View {
+    let level: Int
+    let tone: BatteryDisplay.Tone
+    let size: CGFloat
+    var tint: NSColor?  // the artwork's colour when music is loaded; warnings keep their own colours
+
+    private var color: Color {
+        switch tone {
+        case .normal: return tint.map(Color.init(nsColor:)) ?? .white
+        case .low: return .orange
+        case .critical: return .red
+        case .charging: return .green
+        }
+    }
+
+    var body: some View {
+        let lineWidth = max(1.5, size * 0.1)
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.2), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: CGFloat(level) / 100)
+                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text(verbatim: "\(level)")
+                .font(.system(size: size * 0.36, weight: .semibold).monospacedDigit())
+                .foregroundColor(color)
+                .minimumScaleFactor(0.6)
+        }
+        .padding(lineWidth / 2)
+        .frame(width: size, height: size)
+        .animation(.easeInOut(duration: 0.3), value: level)
+        .accessibilityElement()
+        .accessibilityLabel(Text(verbatim: "\(level) %"))
+    }
+}
+
 // How far the track is, drawn on the resting artwork's edge from the top, clockwise. Redrawn once a second.
 private struct ProgressRing: View {
     let track: NowPlaying
@@ -334,24 +391,35 @@ private struct ProgressRing: View {
     }
 }
 
-// Right side of the resting notch while music is loaded: the level bars in the artwork's colour, replaced on
-// hover by "next track" while playing, or "play" while paused.
+// Right side of the resting notch while music is loaded: the level bars in the artwork's colour while playing,
+// the headphones battery while paused (if known), and on hover "next track" while playing or "play" while
+// paused.
 struct RestingMusicControl: View {
     @ObservedObject var music: MusicController
     let hovered: Bool
+    let battery: Int?  // headphones battery, shown instead of the frozen bars while paused
+    let charging: Bool
+    let batterySize: CGFloat
     @Environment(\.notchScale) private var s
 
     var body: some View {
         let playing = music.nowPlaying?.isPlaying == true
+        let showsBattery = !playing && battery != nil
         ZStack {
             LevelBars(animating: playing && !hovered, color: music.artworkTint)
-                .modifier(FadeScale(amount: hovered ? 1 : 0, scale: 0.6))
+                .modifier(FadeScale(amount: hovered || showsBattery ? 1 : 0, scale: 0.6))
+            if let level = battery {
+                BatteryRing(level: level, tone: BatteryDisplay.tone(level: level, charging: charging), size: batterySize,
+                            tint: music.artworkTint)
+                    .modifier(FadeScale(amount: !hovered && showsBattery ? 0 : 1, scale: 0.6))
+                    .allowsHitTesting(false)
+            }
             Button {
                 if playing { music.next() } else { music.playPause() }
             } label: {
                 Image(systemName: playing ? "forward.fill" : "play.fill")
                     .font(.system(size: 13 * s))
-                    .foregroundColor(.white)
+                    .foregroundColor(music.artworkTint.map(Color.init(nsColor:)) ?? .white)
                     .symbolReplaceTransition()
                     .frame(width: 30 * s, height: 26 * s)
                     .contentShape(Rectangle())
@@ -362,6 +430,7 @@ struct RestingMusicControl: View {
             .allowsHitTesting(hovered)
             .animation(NotchMotion.content, value: playing)
         }
+        .animation(NotchMotion.content, value: showsBattery)
     }
 }
 

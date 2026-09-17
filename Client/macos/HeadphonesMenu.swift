@@ -34,6 +34,7 @@ final class HeadphonesMenu {
     private var showNotchItem = NSMenuItem()
     private var artworkGlowItem = NSMenuItem()
     private var progressRingItem = NSMenuItem()
+    private var headphonesBatteryItem = NSMenuItem()
     private let glowItem = NSMenuItem()
     private let notchSizeItem = NSMenuItem()
     private var updateItem = NSMenuItem()
@@ -180,6 +181,8 @@ final class HeadphonesMenu {
         for item in [autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
         progressRingItem = ActionMenuItem(tr("Progress Ring")) { [weak settings] in settings?.progressRing.toggle() }
         optionsMenu.addItem(progressRingItem)
+        headphonesBatteryItem = ActionMenuItem(tr("Headphones Battery")) { [weak settings] in settings?.headphonesBattery.toggle() }
+        optionsMenu.addItem(headphonesBatteryItem)
         optionsMenu.addItem(makeGlowItem())
         optionsMenu.addItem(makeNotchSizeItem())
         optionsMenu.addItem(makeGesturesItem())
@@ -252,6 +255,8 @@ final class HeadphonesMenu {
         glowItem.isEnabled = settings.showNotch
         progressRingItem.state = settings.progressRing ? .on : .off
         progressRingItem.isEnabled = settings.showNotch
+        headphonesBatteryItem.state = settings.headphonesBattery ? .on : .off
+        headphonesBatteryItem.isEnabled = settings.showNotch
         notchSizeItem.isEnabled = settings.showNotch
         gesturesItem.isEnabled = settings.showNotch
         for (item, keyPath) in gestureItems {
