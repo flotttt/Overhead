@@ -47,8 +47,11 @@ struct NotchView: View {
         ZStack(alignment: .top) {
             NotchShape(bottomRadius: state.isOpen ? 22 : 10).fill(Color.black)
             if state.isOpen {
+                // Laid out at the final size and clipped by the growing shape, so text never reflows (or spills
+                // past the edges) while the spring animates.
                 openContent
                     .padding(.top, state.notchHeight)
+                    .frame(width: state.openSize.width, height: state.openSize.height)
                     .transition(.opacity)
             } else {
                 restingContent
@@ -56,6 +59,7 @@ struct NotchView: View {
             }
         }
         .frame(width: size.width, height: size.height)
+        .clipShape(NotchShape(bottomRadius: state.isOpen ? 22 : 10))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .environment(\.colorScheme, .dark)
     }
@@ -134,11 +138,23 @@ struct NotchView: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder private var tabContent: some View {
-        switch state.tab {
-        case .music: Spacer()        // Task 6: MusicTab
-        case .headphones: Spacer()   // Task 5: HeadphonesTab
+    // Both tabs stay in the hierarchy: the menu-style controls (segmented picker, slider, switch) are AppKit
+    // views that appear at their natural width for a frame before SwiftUI sizes them, so inserting a tab on
+    // each switch made its content spill past the edges.
+    private var tabContent: some View {
+        ZStack(alignment: .top) {
+            tabPage(.music) { Spacer() }        // Task 6: MusicTab
+            tabPage(.headphones) { HeadphonesTab(model: model) }
         }
+    }
+
+    private func tabPage<Content: View>(_ tab: NotchTab, @ViewBuilder content: () -> Content) -> some View {
+        let selected = state.tab == tab
+        return content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .opacity(selected ? 1 : 0)
+            .allowsHitTesting(selected)
+            .accessibilityHidden(!selected)
     }
 }
 
