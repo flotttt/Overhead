@@ -37,7 +37,8 @@ Works on macOS 13 or later, on Apple Silicon and Intel Macs.
 
 SonyNotch checks once a day for a new version. When one is out, click **Update to SonyNotch** in its menu: it
 downloads the new version, replaces itself and restarts. When you're up to date, the item is greyed out. Your
-settings are kept, but macOS may ask for the Bluetooth and Spotify permissions again.
+settings and the Bluetooth and Spotify permissions are kept. Coming from version 1.2.1 or older, macOS asks for
+the permissions one last time.
 
 With Homebrew you can also run `brew upgrade --cask sonynotch`.
 

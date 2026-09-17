@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import CryptoKit
+import Security
 
 // Asks GitHub for the latest release at launch and then once a day, and publishes it when it's newer than this
 // app. install() downloads it, checks its SHA-256, replaces this app and relaunches it. When that isn't possible
@@ -16,6 +17,7 @@ final class UpdateChecker: ObservableObject {
         case download(Int)
         case checksum
         case unexpectedApp
+        case signature
         case command(String)
     }
 
@@ -122,8 +124,29 @@ final class UpdateChecker: ObservableObject {
               AppVersion(version) == release.version else {
             throw InstallError.unexpectedApp
         }
+        try requireSameSigner(newApp)
         try? run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", newApp.path])
         return try fileManager.replaceItemAt(current, withItemAt: newApp) ?? current
+    }
+
+    // A certificate-signed app only installs an update signed with the same certificate (its designated
+    // requirement names the certificate). Ad-hoc builds (up to 1.2.x) have nothing stable to compare, so they
+    // rely on the checksum alone.
+    private static func requireSameSigner(_ newApp: URL) throws {
+        var runningCode: SecCode?
+        var runningStatic: SecStaticCode?
+        var requirement: SecRequirement?
+        var requirementText: CFString?
+        guard SecCodeCopySelf([], &runningCode) == errSecSuccess, let running = runningCode,
+              SecCodeCopyStaticCode(running, [], &runningStatic) == errSecSuccess, let runningStatic = runningStatic,
+              SecCodeCopyDesignatedRequirement(runningStatic, [], &requirement) == errSecSuccess,
+              let requirement = requirement,
+              SecRequirementCopyString(requirement, [], &requirementText) == errSecSuccess,
+              let text = requirementText as String?, text.contains("certificate") else { return }
+        var newCode: SecStaticCode?
+        guard SecStaticCodeCreateWithPath(newApp as CFURL, [], &newCode) == errSecSuccess, let code = newCode,
+              SecStaticCodeCheckValidity(code, SecCSFlags(rawValue: kSecCSCheckAllArchitectures), requirement) == errSecSuccess
+        else { throw InstallError.signature }
     }
 
     private static func requireOK(_ response: URLResponse) throws {

@@ -3,6 +3,11 @@
 #   CONFIG=debug|release (default: debug)
 #   ARCHS="arm64 x86_64"  (default: this Mac's architecture; several = universal binary via lipo)
 #   DEBUG_PROTOCOL=1      (hex-dumps every frame exchanged with the headphones to stderr)
+#   SIGN_IDENTITY=name    (default: "SonyNotch Code Signing" when that certificate is in a keychain, else ad-hoc)
+#   SIGN_KEYCHAIN=path    (keychain holding SIGN_IDENTITY, default: the search list)
+#
+# Every release is signed with the same certificate, so macOS keeps the Bluetooth and Spotify permissions across
+# updates. An ad-hoc signature is identified by the binary's hash, which changes with every build.
 set -euo pipefail
 shopt -s nullglob
 
@@ -62,6 +67,13 @@ cp "$MAC/info.plist" "$APP/Contents/Info.plist"
 cp -R "$MAC"/*.lproj "$APP/Contents/Resources/"
 iconutil -c icns "$MAC/Resources/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"
 
-echo "== Sign (ad-hoc)"
-codesign --force --sign - --entitlements "$MAC/SonyHeadphonesClient.entitlements" "$APP"
+DEFAULT_IDENTITY="SonyNotch Code Signing"
+if [ -z "${SIGN_IDENTITY:-}" ] && security find-identity -p codesigning ${SIGN_KEYCHAIN:+"$SIGN_KEYCHAIN"} 2>/dev/null \
+        | grep -q "\"$DEFAULT_IDENTITY\""; then
+    SIGN_IDENTITY=$DEFAULT_IDENTITY
+fi
+SIGN_IDENTITY=${SIGN_IDENTITY:--}
+echo "== Sign ($([ "$SIGN_IDENTITY" = - ] && echo ad-hoc || echo "$SIGN_IDENTITY"))"
+codesign --force --sign "$SIGN_IDENTITY" ${SIGN_KEYCHAIN:+--keychain "$SIGN_KEYCHAIN"} \
+    --entitlements "$MAC/SonyHeadphonesClient.entitlements" "$APP"
 echo "OK -> $APP"
