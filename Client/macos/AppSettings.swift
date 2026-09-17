@@ -8,6 +8,11 @@ final class AppSettings: ObservableObject {
         static let autoReconnect = "autoReconnect"
         static let lastDeviceAddress = "lastDeviceAddress"
         static let showNotch = "showNotch"
+        static let notchWidth = "notchOpenWidth"
+        static let notchHeight = "notchOpenHeight"
+        static let notchSide = "notchSideWidth"
+        static let notchZoom = "notchZoom"
+        static let notchArtwork = "notchRestingArtwork"
     }
 
     private let defaults: UserDefaults
@@ -23,6 +28,21 @@ final class AppSettings: ObservableObject {
     }
     @Published private(set) var launchAtLogin: Bool
 
+    // Notch Size submenu. Stored as the user set them; NotchLayout clamps.
+    @Published var notchWidth: Double { didSet { defaults.set(notchWidth, forKey: Keys.notchWidth) } }
+    @Published var notchHeight: Double { didSet { defaults.set(notchHeight, forKey: Keys.notchHeight) } }
+    @Published var notchSideWidth: Double { didSet { defaults.set(notchSideWidth, forKey: Keys.notchSide) } }
+    @Published var notchZoom: Double { didSet { defaults.set(notchZoom, forKey: Keys.notchZoom) } }
+    @Published var notchArtwork: Double { didSet { defaults.set(notchArtwork, forKey: Keys.notchArtwork) } }
+    // True while the Notch Size submenu is open: the notch stays open as a live preview. Not persisted.
+    @Published var notchPreviewing = false
+
+    var notchLayout: NotchLayout {
+        NotchLayout(openSize: CGSize(width: notchWidth, height: notchHeight),
+                    sideExtension: CGFloat(notchSideWidth), zoom: CGFloat(notchZoom),
+                    restingArtwork: CGFloat(notchArtwork))
+    }
+
     var lastDeviceAddress: String? {
         get { defaults.string(forKey: Keys.lastDeviceAddress) }
         set { defaults.set(newValue, forKey: Keys.lastDeviceAddress) }
@@ -32,11 +52,31 @@ final class AppSettings: ObservableObject {
         self.defaults = defaults
         // Spec §4: auto-connect and auto-reconnect default on; launch at login stays off until the user asks.
         // Notch spec §7: the notch is shown by default.
-        defaults.register(defaults: [Keys.autoConnect: true, Keys.autoReconnect: true, Keys.showNotch: true])
+        let layout = NotchLayout.default
+        defaults.register(defaults: [
+            Keys.autoConnect: true, Keys.autoReconnect: true, Keys.showNotch: true,
+            Keys.notchWidth: Double(layout.openSize.width), Keys.notchHeight: Double(layout.openSize.height),
+            Keys.notchSide: Double(layout.sideExtension), Keys.notchZoom: Double(layout.zoom),
+            Keys.notchArtwork: Double(layout.restingArtwork),
+        ])
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
         autoReconnect = defaults.bool(forKey: Keys.autoReconnect)
         showNotch = defaults.bool(forKey: Keys.showNotch)
+        notchWidth = defaults.double(forKey: Keys.notchWidth)
+        notchHeight = defaults.double(forKey: Keys.notchHeight)
+        notchSideWidth = defaults.double(forKey: Keys.notchSide)
+        notchZoom = defaults.double(forKey: Keys.notchZoom)
+        notchArtwork = defaults.double(forKey: Keys.notchArtwork)
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    func resetNotchSize() {
+        let layout = NotchLayout.default
+        notchWidth = Double(layout.openSize.width)
+        notchHeight = Double(layout.openSize.height)
+        notchSideWidth = Double(layout.sideExtension)
+        notchZoom = Double(layout.zoom)
+        notchArtwork = Double(layout.restingArtwork)
     }
 
     // Returns an error message if macOS refused the change.

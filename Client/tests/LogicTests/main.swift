@@ -53,6 +53,36 @@ do {
     check(geometry.open == CGRect(x: 606, y: 816, width: 300, height: 166), "open rect was \(geometry.open)")
     check(geometry.restingFrame(for: .empty) == geometry.notch, "empty state: bare notch")
     check(geometry.restingFrame(for: .musicOnly) == geometry.extended, "music: extended notch")
+    check(geometry.restingTrailingZone == CGRect(x: 850, y: 950, width: 36, height: 32),
+          "resting trailing zone was \(geometry.restingTrailingZone)")
+}
+
+// NotchLayout: user sizes are clamped; the zoom never lays the open content out smaller than it needs.
+do {
+    let clamped = NotchLayout(openSize: CGSize(width: 100, height: 1000), sideExtension: 5, zoom: 3)
+    check(clamped.openSize == CGSize(width: 280, height: 260), "open size clamped, was \(clamped.openSize)")
+    check(clamped.sideExtension == 28 && clamped.zoom == 1.3, "side and zoom clamped")
+    check(clamped.contentScale == 1, "zoom limited by the width, was \(clamped.contentScale)")
+    let roomy = NotchLayout(openSize: CGSize(width: 400, height: 240), sideExtension: 60, zoom: 1.2)
+    check(roomy.contentScale == 1.2 && roomy.restingScale == 1.2, "zoom applied when the notch is large enough")
+    let narrowSides = NotchLayout(openSize: NotchLayout.default.openSize, sideExtension: 30, zoom: 1.3)
+    check(narrowSides.restingScale == 1, "resting icons limited by the side width, was \(narrowSides.restingScale)")
+    check(NotchLayout.default.contentScale == 1 && NotchLayout.default.restingScale == 1, "default: no zoom")
+    check(NotchLayout.default.restingArtworkSize(notchHeight: 32) == 24, "default resting artwork")
+    let bigArtwork = NotchLayout(openSize: NotchLayout.default.openSize, sideExtension: 36, zoom: 1, restingArtwork: 40)
+    check(bigArtwork.restingArtwork == 30, "resting artwork clamped, was \(bigArtwork.restingArtwork)")
+    check(bigArtwork.restingArtworkSize(notchHeight: 32) == 28, "resting artwork fits the notch height")
+    let thinSides = NotchLayout(openSize: NotchLayout.default.openSize, sideExtension: 28, zoom: 1, restingArtwork: 30)
+    check(thinSides.restingArtworkSize(notchHeight: 32) == 22, "resting artwork fits the side width")
+
+    let screen = ScreenMetrics(frame: CGRect(x: 0, y: 0, width: 1512, height: 982), safeAreaTop: 32,
+                               auxiliaryTopLeft: CGRect(x: 0, y: 950, width: 662, height: 32),
+                               auxiliaryTopRight: CGRect(x: 850, y: 950, width: 662, height: 32),
+                               menuBarHeight: 32)
+    let geometry = NotchGeometry(screen: screen, layout: roomy)
+    check(geometry.extended == CGRect(x: 602, y: 950, width: 308, height: 32), "custom extended was \(geometry.extended)")
+    check(geometry.open == CGRect(x: 556, y: 742, width: 400, height: 240), "custom open was \(geometry.open)")
+    check(geometry.restingTrailingZone == CGRect(x: 850, y: 950, width: 60, height: 32), "custom trailing zone")
 }
 
 // NotchGeometry: an external screen without a notch, right of the primary screen.

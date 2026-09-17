@@ -12,6 +12,7 @@ struct FlatSlider: View {
     let onChange: (Double, Bool) -> Void
 
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.notchScale) private var s
     @State private var dragging = false
     @State private var hovering = false
 
@@ -20,7 +21,7 @@ struct FlatSlider: View {
             let width = max(geometry.size.width, 1)
             let span = range.upperBound - range.lowerBound
             let fraction = span > 0 ? min(1, max(0, (value - range.lowerBound) / span)) : 0
-            let barHeight = dragging || hovering ? height + 2 : height
+            let barHeight = (dragging || hovering ? height + 2 : height) * s
             ZStack(alignment: .leading) {
                 Capsule().fill(Color(white: 0.25))
                 Capsule()
@@ -46,7 +47,7 @@ struct FlatSlider: View {
             .onHover { hovering = isEnabled && $0 }
             .animation(.easeOut(duration: 0.12), value: barHeight)
         }
-        .frame(height: height + 8)
+        .frame(height: (height + 8) * s)
         .opacity(isEnabled ? 1 : 0.4)
     }
 

@@ -76,3 +76,10 @@
 "Voice" = "Voix";
 "NC" = "Réduction";
 "Ambient" = "Ambiant";
+"Notch Size" = "Taille de l’encoche";
+"Open Width" = "Largeur ouverte";
+"Open Height" = "Hauteur ouverte";
+"Closed Width" = "Largeur fermée";
+"Text Size" = "Taille du texte";
+"Reset Size" = "Réinitialiser";
+"Closed Artwork" = "Pochette (fermée)";

@@ -11,14 +11,15 @@ struct NotchSwitch: View {
     let set: (Bool) -> Void
 
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.notchScale) private var s
 
     var body: some View {
         Button { set(!isOn) } label: {
             ZStack(alignment: isOn ? .trailing : .leading) {
                 Capsule().fill(isOn ? Color.green : Color(white: 0.3))
-                Circle().fill(Color.white).padding(2)
+                Circle().fill(Color.white).padding(2 * s)
             }
-            .frame(width: 30, height: 18)
+            .frame(width: 30 * s, height: 18 * s)
             .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isOn)
         }
         .buttonStyle(PressableButtonStyle())
@@ -33,15 +34,16 @@ struct NotchSwitch: View {
 struct NotchPillButton: View {
     let title: String
     let action: () -> Void
+    @Environment(\.notchScale) private var s
 
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 12 * s, weight: .medium))
                 .foregroundColor(.white)
                 .lineLimit(1)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 5)
+                .padding(.horizontal, 12 * s)
+                .padding(.vertical, 5 * s)
                 .background(Capsule().fill(Color(white: 0.22)))
                 .contentShape(Capsule())
         }

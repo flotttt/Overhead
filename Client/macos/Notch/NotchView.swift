@@ -5,11 +5,16 @@ import SwiftUI
 final class NotchViewState: ObservableObject {
     @Published var isOpen = false
     @Published var openContentMounted = false  // true while open, and while the closing animation plays
+    @Published var trailingHovered = false     // pointer over the resting music control
     @Published var resting: NotchRestingState = .empty
     @Published var tab: NotchTab = .music
     @Published var restingSize: CGSize = .zero
     @Published var openSize: CGSize = .zero
     @Published var notchHeight: CGFloat = 32
+    @Published var sideExtension = NotchLayout.default.sideExtension
+    @Published var contentScale: CGFloat = 1  // text and icon zoom, open notch
+    @Published var restingScale: CGFloat = 1  // same, resting icons
+    @Published var restingArtworkSize = NotchLayout.default.restingArtwork
 }
 
 // Merges with the notch: the top corners flare out into the menu bar (concave, `topRadius` wide on each side,
@@ -62,6 +67,7 @@ struct NotchView: View {
                 // past the edges) while the spring animates. Grows in with a transition; shrinks out through the
                 // modifier below, since SwiftUI skipped the removal transition (content vanished at once).
                 openContent
+                    .environment(\.notchScale, state.contentScale)
                     .padding(.top, state.notchHeight)
                     .frame(width: state.openSize.width, height: state.openSize.height)
                     .modifier(FadeScale(amount: state.isOpen ? 0 : 1, scale: NotchMotion.morphScale))
@@ -71,6 +77,7 @@ struct NotchView: View {
             // Always mounted and faded on isOpen: an inserted resting strip (transition) didn't come back after
             // a close while the open content was still mounted.
             restingContent
+                .environment(\.notchScale, state.restingScale)
                 .opacity(state.isOpen ? 0 : 1)
                 .animation(NotchMotion.resting(open: state.isOpen), value: state.isOpen)
                 .allowsHitTesting(!state.isOpen)
@@ -87,9 +94,9 @@ struct NotchView: View {
 
     private var restingContent: some View {
         HStack(spacing: 0) {
-            leadingItem.frame(width: NotchGeometry.sideExtension)
+            leadingItem.frame(width: state.sideExtension)
             Spacer(minLength: 0)
-            trailingItem.frame(width: NotchGeometry.sideExtension)
+            trailingItem.frame(width: state.sideExtension)
         }
         // Explicit width: while the (wider) open content is still mounted during a close, the strip otherwise
         // took the open width, so the artwork and mode icon sat outside the shape (cut off), then jumped back.
@@ -99,9 +106,9 @@ struct NotchView: View {
     @ViewBuilder private var leadingItem: some View {
         switch state.resting {
         case .musicAndHeadphones, .musicOnly:
-            ArtworkView(image: music.artwork, size: 20, cornerRadius: 5)
+            ArtworkView(image: music.artwork, size: state.restingArtworkSize, cornerRadius: state.restingArtworkSize * 0.25)
         case .headphonesOnly:
-            Image(systemName: "headphones").font(.system(size: 13)).foregroundColor(.white)
+            Image(systemName: "headphones").font(.system(size: 13 * state.restingScale)).foregroundColor(.white)
         case .empty:
             EmptyView()
         }
@@ -109,10 +116,10 @@ struct NotchView: View {
 
     @ViewBuilder private var trailingItem: some View {
         switch state.resting {
-        case .musicAndHeadphones, .headphonesOnly:
-            Image(systemName: Self.modeSymbol(model.mode)).font(.system(size: 13)).foregroundColor(.white)
-        case .musicOnly:
-            LevelBars(animating: music.nowPlaying?.isPlaying == true, color: music.artworkTint)
+        case .musicAndHeadphones, .musicOnly:
+            RestingMusicControl(music: music, hovered: state.trailingHovered)
+        case .headphonesOnly:
+            Image(systemName: Self.modeSymbol(model.mode)).font(.system(size: 13 * state.restingScale)).foregroundColor(.white)
         case .empty:
             EmptyView()
         }
@@ -135,9 +142,9 @@ struct NotchView: View {
             page(.music) { MusicTab(music: music, showHeadphones: { selectTab(.headphones) }) }
             page(.headphones) { HeadphonesTab(model: model, back: { selectTab(.music) }) }
         }
-        .padding(.top, 8)
-        .padding(.horizontal, Self.openFlare + 16)
-        .padding(.bottom, 14)
+        .padding(.top, 8 * state.contentScale)
+        .padding(.horizontal, Self.openFlare + 16 * state.contentScale)
+        .padding(.bottom, 14 * state.contentScale)
     }
 
     // The player slides off to the left, the headphones page comes in from the right (and back). No blur: it
@@ -180,22 +187,54 @@ struct ArtworkView: View {
     }
 }
 
+// Right side of the resting notch while music is loaded: the level bars in the artwork's colour, replaced on
+// hover by "next track" while playing, or "play" while paused.
+struct RestingMusicControl: View {
+    @ObservedObject var music: MusicController
+    let hovered: Bool
+    @Environment(\.notchScale) private var s
+
+    var body: some View {
+        let playing = music.nowPlaying?.isPlaying == true
+        ZStack {
+            LevelBars(animating: playing && !hovered, color: music.artworkTint)
+                .modifier(FadeScale(amount: hovered ? 1 : 0, scale: 0.6))
+            Button {
+                if playing { music.next() } else { music.playPause() }
+            } label: {
+                Image(systemName: playing ? "forward.fill" : "play.fill")
+                    .font(.system(size: 13 * s))
+                    .foregroundColor(.white)
+                    .symbolReplaceTransition()
+                    .frame(width: 30 * s, height: 26 * s)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PressableButtonStyle())
+            .accessibilityLabel(playing ? tr("Next track") : tr("Play or pause"))
+            .modifier(FadeScale(amount: hovered ? 0 : 1, scale: 0.6))
+            .allowsHitTesting(hovered)
+            .animation(NotchMotion.content, value: playing)
+        }
+    }
+}
+
 // Four small bars in the artwork's colour, moving while music plays, frozen when paused.
 struct LevelBars: View {
     let animating: Bool
     var color: NSColor?
+    @Environment(\.notchScale) private var s
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !animating)) { context in
             let time = context.date.timeIntervalSinceReferenceDate
-            HStack(alignment: .bottom, spacing: 2) {
+            HStack(alignment: .bottom, spacing: 2 * s) {
                 ForEach(0..<4, id: \.self) { index in
                     Capsule()
                         .fill(color.map(Color.init(nsColor:)) ?? Color(white: 0.85))
-                        .frame(width: 3, height: animating ? 4 + 10 * abs(sin(time * 3 + Double(index) * 1.3)) : 4)
+                        .frame(width: 3 * s, height: (animating ? 4 + 10 * abs(sin(time * 3 + Double(index) * 1.3)) : 4) * s)
                 }
             }
-            .frame(height: 14, alignment: .bottom)
+            .frame(height: 14 * s, alignment: .bottom)
             .animation(.easeOut(duration: 0.3), value: animating)
         }
     }

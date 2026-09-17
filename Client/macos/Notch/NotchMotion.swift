@@ -51,6 +51,18 @@ struct PressableButtonStyle: ButtonStyle {
     }
 }
 
+// Text and icon zoom inside the notch (Options › Notch Size › Text Size, already limited to what fits).
+private struct NotchScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+extension EnvironmentValues {
+    var notchScale: CGFloat {
+        get { self[NotchScaleKey.self] }
+        set { self[NotchScaleKey.self] = newValue }
+    }
+}
+
 extension View {
     // SF Symbol swaps (play ↔ pause) morph on macOS 14+; older systems cross-fade.
     @ViewBuilder func symbolReplaceTransition() -> some View {
