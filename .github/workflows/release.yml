@@ -1,27 +1,43 @@
 name: Release
 
-# Push a version tag to publish a release:
-#   git tag v1.0.0 && git push origin v1.0.0
-# The app gets its version from the tag, is tested and built for Apple Silicon and Intel, and the zip is attached
-# to a GitHub release with its SHA-256. The Homebrew cask in flotttt/homebrew-tap is then pointed at the new
-# version (needs the HOMEBREW_TAP_TOKEN secret, skipped without it).
+# Publishing a release (on GitHub: Releases › Draft a new release › new tag like 1.2.0 or v1.2.0 › Publish, or
+# `git tag v1.2.0 && git push origin v1.2.0`) creates a version tag, which runs this workflow. The app gets its
+# version from the tag, is tested and built for Apple Silicon and Intel, and the zip is attached to the release
+# with its SHA-256. The Homebrew cask in flotttt/homebrew-tap is then pointed at it (needs the
+# HOMEBREW_TAP_TOKEN secret, skipped without it).
+#
+# To build a release whose tag didn't run the workflow: Actions › Release › Run workflow, with that tag.
 
 on:
   push:
-    tags: ["v*.*.*"]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+", "[0-9]+.[0-9]+.[0-9]+"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag of the release to build (e.g. 1.2.0 or v1.2.0)"
+        required: true
 
 permissions:
   contents: write
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   release:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
 
       - name: Set the app version from the tag
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${TAG#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "The tag $TAG isn't a version like 1.2.0 or v1.2.0."
+            exit 1
+          fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" Client/macos/info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.run_number }}" Client/macos/info.plist
@@ -37,19 +53,20 @@ jobs:
           cd build
           shasum -a 256 SonyNotch.zip | tee SonyNotch.zip.sha256
 
-      # A release already made by hand for this tag (title and notes written on GitHub) only gets the files.
+      # A release already made on GitHub for this tag (title and notes written there) only gets the files.
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" build/SonyNotch.zip build/SonyNotch.zip.sha256 --clobber
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" build/SonyNotch.zip build/SonyNotch.zip.sha256 --clobber
           else
-            gh release create "$GITHUB_REF_NAME" build/SonyNotch.zip build/SonyNotch.zip.sha256 \
+            gh release create "$TAG" build/SonyNotch.zip build/SonyNotch.zip.sha256 \
               --title "SonyNotch $VERSION" \
               --generate-notes
           fi
 
+      # The download URL uses the exact tag, since tags may or may not start with "v".
       - name: Update the Homebrew cask
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
@@ -60,9 +77,14 @@ jobs:
           fi
           FILE=Casks/sonynotch.rb
           SHA256=$(cut -d ' ' -f 1 build/SonyNotch.zip.sha256)
+          URL="https://github.com/flotttt/SonyNotch/releases/download/$TAG/SonyNotch.zip"
           gh api "repos/flotttt/homebrew-tap/contents/$FILE" > current.json
           jq -r .content current.json | base64 -D > sonynotch.rb
-          sed -i '' -E "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$SHA256\"/" sonynotch.rb
+          sed -i '' -E \
+            -e "s|^  version \".*\"|  version \"$VERSION\"|" \
+            -e "s|^  sha256 \".*\"|  sha256 \"$SHA256\"|" \
+            -e "s|^  url \".*\"|  url \"$URL\"|" \
+            sonynotch.rb
           gh api -X PUT "repos/flotttt/homebrew-tap/contents/$FILE" \
             -f message="sonynotch $VERSION" \
             -f content="$(base64 -i sonynotch.rb)" \
