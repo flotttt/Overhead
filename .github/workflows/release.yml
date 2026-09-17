@@ -7,6 +7,9 @@ name: Release
 # HOMEBREW_TAP_TOKEN secret, skipped without it).
 #
 # To build a release whose tag didn't run the workflow: Actions › Release › Run workflow, with that tag.
+#
+# The app is signed with the "SonyNotch Code Signing" certificate (SIGNING_CERT_P12 and SIGNING_CERT_PASSWORD
+# secrets), the same for every release, so macOS keeps its Bluetooth and Spotify permissions across updates.
 
 on:
   push:
@@ -45,8 +48,32 @@ jobs:
       - name: Test
         run: make test
 
+      - name: Import the signing certificate
+        env:
+          SIGNING_CERT_P12: ${{ secrets.SIGNING_CERT_P12 }}
+          SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_CERT_P12" ]; then
+            echo "The SIGNING_CERT_P12 secret is missing: a release signed otherwise would lose users' permissions."
+            exit 1
+          fi
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 16)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          echo "$SIGNING_CERT_P12" | base64 -D > "$RUNNER_TEMP/signing.p12"
+          security import "$RUNNER_TEMP/signing.p12" -k "$KEYCHAIN" -P "$SIGNING_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          rm "$RUNNER_TEMP/signing.p12"
+          echo "SIGN_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+          echo "SIGN_IDENTITY=SonyNotch Code Signing" >> "$GITHUB_ENV"
+
       - name: Build (release, universal)
         run: make release
+
+      - name: Check the signature
+        run: codesign -dr - build/SonyNotch.app 2>&1 | grep -q 'certificate root'
 
       - name: Checksum
         run: |
