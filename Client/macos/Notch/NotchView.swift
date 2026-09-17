@@ -7,6 +7,8 @@ final class NotchViewState: ObservableObject {
     @Published var openContentMounted = false  // true while open, and while the closing animation plays
     @Published var trailingHovered = false     // pointer over the resting music control
     @Published var scrolledVolume: Int?         // Spotify volume being set by scrolling over the notch
+    @Published var artworkGlow = true           // Options › Glow
+    @Published var glowSize: CGFloat = 1        // times the default glow size
     @Published var resting: NotchRestingState = .empty
     @Published var tab: NotchTab = .music
     @Published var restingSize: CGSize = .zero
@@ -71,6 +73,7 @@ struct NotchView: View {
                     .environment(\.notchScale, state.contentScale)
                     .padding(.top, state.notchHeight)
                     .frame(width: state.openSize.width, height: state.openSize.height)
+                    .background(artworkGlow)
                     .modifier(FadeScale(amount: state.isOpen ? 0 : 1, scale: NotchMotion.morphScale))
                     .allowsHitTesting(state.isOpen)
                     .transition(NotchMotion.morph)
@@ -138,6 +141,20 @@ struct NotchView: View {
     }
 
     // MARK: - Open
+
+    // A soft light in the artwork's colour, coming from where the artwork sits and fading over the player, like
+    // the iPhone's lock screen. Its colour glides to the next track's; it fades out on the headphones page.
+    private var artworkGlow: some View {
+        let tint = music.artworkTint.map(Color.init(nsColor:)) ?? .clear
+        let visible = state.artworkGlow && state.tab == .music && music.hasMusic && music.artworkTint != nil
+        return RadialGradient(colors: [tint.opacity(0.42), tint.opacity(0.12), .clear],
+                              center: UnitPoint(x: 0.17, y: 0.4), startRadius: 0,
+                              endRadius: state.openSize.width * 0.8 * state.glowSize)
+            .opacity(visible ? 1 : 0)
+            .animation(.easeInOut(duration: 0.6), value: music.artworkTint)
+            .animation(NotchMotion.content, value: visible)
+            .allowsHitTesting(false)
+    }
 
     private var openContent: some View {
         // Both pages stay in the hierarchy (switching is then a cross-slide, not an insertion), the hidden one

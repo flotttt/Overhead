@@ -17,6 +17,8 @@ final class AppSettings: ObservableObject {
         static let scrollForVolume = "gestureScrollForVolume"
         static let reverseSwipe = "gestureReverseSwipe"
         static let reverseScroll = "gestureReverseScroll"
+        static let artworkGlow = "artworkGlow"
+        static let glowSize = "glowSize"
         static let hapticOnOpen = "hapticOnOpen"
         static let hapticOnButtons = "hapticOnButtons"
         static let hapticOnSkip = "hapticOnSkip"
@@ -48,6 +50,9 @@ final class AppSettings: ObservableObject {
     @Published var scrollForVolume: Bool { didSet { defaults.set(scrollForVolume, forKey: Keys.scrollForVolume) } }
     @Published var reverseSwipe: Bool { didSet { defaults.set(reverseSwipe, forKey: Keys.reverseSwipe) } }
     @Published var reverseScroll: Bool { didSet { defaults.set(reverseScroll, forKey: Keys.reverseScroll) } }
+    @Published var artworkGlow: Bool { didSet { defaults.set(artworkGlow, forKey: Keys.artworkGlow) } }
+    @Published var glowSize: Double { didSet { defaults.set(glowSize, forKey: Keys.glowSize) } }
+    static let glowSizeRange: ClosedRange<CGFloat> = 0.5...1.75  // times the default glow size
     @Published var hapticOnOpen: Bool { didSet { defaults.set(hapticOnOpen, forKey: Keys.hapticOnOpen) } }
     @Published var hapticOnButtons: Bool { didSet { defaults.set(hapticOnButtons, forKey: Keys.hapticOnButtons) } }
     @Published var hapticOnSkip: Bool { didSet { defaults.set(hapticOnSkip, forKey: Keys.hapticOnSkip) } }
@@ -86,7 +91,7 @@ final class AppSettings: ObservableObject {
             Keys.notchSide: Double(layout.sideExtension), Keys.notchZoom: Double(layout.zoom),
             Keys.notchArtwork: Double(layout.restingArtwork),
             Keys.swipeToSkip: true, Keys.scrollForVolume: true, Keys.reverseSwipe: false, Keys.reverseScroll: false,
-            Keys.hapticOnOpen: true, Keys.hapticOnButtons: true, Keys.hapticOnSkip: true, Keys.hapticOnVolume: true,
+            Keys.artworkGlow: true, Keys.glowSize: 1.0, Keys.hapticOnOpen: true, Keys.hapticOnButtons: true, Keys.hapticOnSkip: true, Keys.hapticOnVolume: true,
             Keys.hapticStrength: 2,
         ])
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
@@ -101,6 +106,8 @@ final class AppSettings: ObservableObject {
         scrollForVolume = defaults.bool(forKey: Keys.scrollForVolume)
         reverseSwipe = defaults.bool(forKey: Keys.reverseSwipe)
         reverseScroll = defaults.bool(forKey: Keys.reverseScroll)
+        artworkGlow = defaults.bool(forKey: Keys.artworkGlow)
+        glowSize = defaults.double(forKey: Keys.glowSize)
         hapticOnOpen = defaults.bool(forKey: Keys.hapticOnOpen)
         hapticOnButtons = defaults.bool(forKey: Keys.hapticOnButtons)
         hapticOnSkip = defaults.bool(forKey: Keys.hapticOnSkip)

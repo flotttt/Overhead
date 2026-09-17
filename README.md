@@ -73,6 +73,9 @@ Move the pointer over the notch and it opens into a player with:
 - a volume button for Spotify's volume
 - a headphones button to change the sound mode without opening the menu
 
+Behind the player, a soft glow takes the colour of the artwork. In SonyNotch Options › Glow you can turn it off
+or change its size, with the notch open as a live preview.
+
 When the notch is closed, it shows the album artwork and little bars that move with the music. Hover the bars
 to skip to the next track, or to resume the music when it's paused. When the track changes, the artwork flips
 over, backwards when you go to the previous track.

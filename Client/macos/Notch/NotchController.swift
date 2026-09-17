@@ -102,6 +102,12 @@ final class NotchController {
                 NotchHaptics.enabledEvents = events
             }
             .store(in: &cancellables)
+        settings.$artworkGlow
+            .sink { [weak self] in self?.state.artworkGlow = $0 }
+            .store(in: &cancellables)
+        settings.$glowSize
+            .sink { [weak self] in self?.state.glowSize = CGFloat($0) }
+            .store(in: &cancellables)
         settings.$hapticStrength
             .sink { NotchHaptics.strength = $0 }
             .store(in: &cancellables)
