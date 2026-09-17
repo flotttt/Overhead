@@ -37,6 +37,8 @@
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>This app uses Bluetooth in order to connect to your headphones.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>SonyBridge shows and controls the music playing in Spotify.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

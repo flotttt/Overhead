@@ -48,6 +48,7 @@
 "Launch at Login" = "Lancer à l’ouverture de session";
 "Connect Automatically" = "Connexion automatique";
 "Reconnect Automatically" = "Reconnexion automatique";
+"Show Notch" = "Afficher l’encoche";
 
 /* Errors (HeadphonesBridge.mm, HeadphonesModel.swift) */
 "No connected Sony headset found. Connect your headphones in macOS Bluetooth settings first." = "Aucun casque Sony connecté. Connectez d’abord votre casque dans les réglages Bluetooth de macOS.";
@@ -57,3 +58,28 @@
 "Not supported on this device." = "Non pris en charge sur cet appareil.";
 "The headphones didn't respond." = "Le casque n’a pas répondu.";
 "Couldn't open the control channel." = "Impossible d’ouvrir le canal de contrôle.";
+
+/* Notch (Notch/*.swift) */
+"Headphones" = "Casque";
+"Level" = "Niveau";
+"Spotify isn't open" = "Spotify n’est pas ouvert";
+"Open Spotify" = "Ouvrir Spotify";
+"SonyBridge isn't allowed to control Spotify." = "SonyBridge n’a pas l’autorisation de contrôler Spotify.";
+"Open Settings" = "Ouvrir les réglages";
+"Nothing playing" = "Rien en cours de lecture";
+"Previous track" = "Morceau précédent";
+"Play or pause" = "Lecture ou pause";
+"Next track" = "Morceau suivant";
+"Shuffle" = "Lecture aléatoire";
+"Spotify volume" = "Volume de Spotify";
+"Back" = "Retour";
+"Voice" = "Voix";
+"NC" = "Réduction";
+"Ambient" = "Ambiant";
+"Notch Size" = "Taille de l’encoche";
+"Open Width" = "Largeur ouverte";
+"Open Height" = "Hauteur ouverte";
+"Closed Width" = "Largeur fermée";
+"Text Size" = "Taille du texte";
+"Reset Size" = "Réinitialiser";
+"Closed Artwork" = "Pochette (fermée)";

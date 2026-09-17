@@ -1,77 +1,74 @@
-<div align="center">
+# SonyBridge
 
-<img src="docs/banner.svg" alt="SonyBridge" width="100%">
+**Control your Sony headphones from your Mac's menu bar and notch, without the phone app.**
 
-<br/>
+SonyBridge is a native macOS app for Sony Bluetooth headphones: noise cancelling, ambient sound, equalizer,
+battery and more, from a menu bar menu, plus a notch panel that shows the music playing in Spotify and your
+headphones' sound mode.
 
-**An unofficial, open-source macOS menu bar app for Sony headphones — Noise Cancelling, Ambient Sound, EQ, DSEE and battery, without the phone.**
+It talks to the headphones directly over Bluetooth, so you don't need Sony's *Sound Connect* phone app.
 
-<br/>
-
-[![Build](https://github.com/flotttt/SonyBridge/actions/workflows/build.yml/badge.svg)](https://github.com/flotttt/SonyBridge/actions/workflows/build.yml)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-![Platforms](https://img.shields.io/badge/platform-macOS-blue)
-
-<br/>
-
-**[Features](#-features)** · **[Install](#-install)** · **[Usage](#-usage)** · **[Supported headphones](#-supported-headphones)** · **[Build from source](#-build-from-source)** · **[Contributing](#-contributing)** · **[Credits](#-credits)**
-
-<br/>
-
-*Screenshots of the menu bar app are coming — for now, see the [Usage](#-usage) section below for what to expect.*
-
-</div>
+[Features](#features) · [The notch](#the-notch) · [Install](#install) · [Supported headphones](#supported-headphones) · [Build from source](#build-from-source) · [How it works](#how-it-works) · [Troubleshooting](#troubleshooting)
 
 ---
 
-## Why
+## Features
 
-Sony locks headphone settings behind their mobile-only *Sound Connect* app. If you live on a laptop,
-you're stuck. SonyBridge talks to the headphones directly over Bluetooth RFCOMM using Sony's
-reverse-engineered binary protocol — no phone required. It lives entirely in your macOS menu bar: no
-Dock icon, no window, just a native menu.
+### In the menu bar
 
-The original [SonyHeadphonesClient](https://github.com/Plutoberth/SonyHeadphonesClient) only spoke Sony's
-**first-generation** protocol, so newer headsets (WH-CH720N, WH-1000XM5/XM6, WF-series, LinkBuds…) just timed
-out on connect. SonyBridge adds full **second-generation ("v2") protocol** support and a native macOS
-menu bar app, built with AppKit/SwiftUI.
+- **Sound modes:** Noise Cancelling, Ambient Sound (level slider and Focus on Voice) and Off. The menu follows
+  the headphones' own NC button live.
+- **Equalizer:** presets and a Manual mode with one slider per band (5 bands + Clear Bass on older models).
+  On the WH-1000XM6 the 10-band equalizer is shown but read-only for now.
+- **Other settings**, only when your model has them: DSEE, Speak-to-Chat, Adaptive Volume, Auto Power-Off.
+- **Battery:** live percentage, per earbud and case on true-wireless models.
+- **About the Headphones:** firmware, codec, protocol version and Bluetooth address.
+- **Connection:** connects automatically at launch and when the headphones join the Mac, reconnects if the
+  link drops, and can launch at login.
+- **Languages:** English and French, following your macOS language.
 
-## ✨ Features
+The menu bar icon shows the current sound mode and dims while disconnected.
 
-**Sound modes**
-- 🎚️ **Ambient Sound Control** — Noise Cancelling · Ambient Sound (with a 1–20 level slider (1–19 on older models) and a Focus on Voice switch) · Off
-- 🔄 **Live button sync** — following the headset's own NC button live, even while the menu is open
+### The notch
 
-**Equalizer**
-- 🎛️ **Equalizer** — presets *and* a **Manual mode** with vertical sliders (5 bands + Clear Bass on older models). The **WH-1000XM6**'s 10-band equalizer is read and displayed; changing the equalizer (presets and Manual) is coming in a later update — its write format isn't verified yet, so the presets and sliders are greyed out with a "coming soon" note
+Hover the notch at the top of a MacBook screen and it unfolds into a small player. On a screen without a
+notch, the same panel sits in a black pill at the top centre.
 
-**Other settings** *(each shown only if your headset supports it)*
-- ✨ **DSEE** — Sony's audio upscaling for compressed sources
-- 🗣️ **Speak-to-Chat** and **Adaptive Volume**
-- ⏱️ **Auto Power-Off** — Off, 5 min, 30 min, 1 hour, 3 hours, or when taken off
+**Closed**, the notch shows what's going on at a glance:
 
-**Battery & info**
-- 🔋 **Battery level** — live percentage, including **per-earbud + case** for TWS models
-- 🎧 **About the Headphones** — firmware, codec, protocol, and Bluetooth address
+- the album artwork on the left;
+- on the right, small bars in the artwork's colour that move while music plays. Hover them for a
+  **next track** button, or a **play** button when the music is paused;
+- without music, a headphones icon on the left and the current sound mode on the right.
 
-**Automatic connection**
-- 📍 **Lives in the menu bar** — a native macOS menu; the icon shows the current mode and dims when disconnected
-- 🔌 **Connect Automatically** (on by default) — at launch and whenever your headset connects to the Mac
-- 🔁 **Reconnect Automatically** (on by default) — retries if the control link drops while the headset is still connected, backing off from 3 s up to every 60 s
-- 🚀 **Launch at Login** (off by default) — uses macOS Login Items
+**Open**, it's a music player for the **Spotify** desktop app:
 
-**Languages**
-- 🌍 **English & French** — follows your macOS language
+- artwork, title and artist;
+- elapsed time, a progress bar you can click or drag to seek, and the track length;
+- previous, play/pause, next and shuffle;
+- a volume button that swaps the progress bar for Spotify's volume for a few seconds;
+- a headphones button that slides to the **headphones page**: Noise Cancelling / Ambient / Off, ambient
+  level and Focus on Voice.
 
-## 📥 Install
+It opens and closes with a spring animation and never takes the keyboard from the app you're using.
 
-**Requirements:** macOS 13 or later, and the Xcode **Command Line Tools** (no full Xcode app needed):
+**Make it yours** under **SonyBridge Options › Notch Size**: open width and height, closed width, artwork
+size on the closed notch, and text size. Changes apply live and are remembered; the layout adapts so
+nothing overlaps (the artwork grows with the height, text size is capped to what fits). **Show Notch**
+turns the whole thing off.
+
+Spotify is controlled locally through macOS automation. No Spotify account or login is involved, and
+SonyBridge never opens Spotify by itself.
+
+## Install
+
+You need **macOS 13 or later** and Apple's **Command Line Tools** (the full Xcode app isn't needed):
 
 ```sh
 xcode-select --install
 ```
 
-Then:
+Then build and install:
 
 ```sh
 git clone https://github.com/flotttt/SonyBridge.git
@@ -79,117 +76,93 @@ cd SonyBridge
 make install
 ```
 
-`make install` builds a release version, quits SonyBridge if it's running, and installs it to
-`/Applications/SonyBridge.app`. Afterwards, launch it from Launchpad, Spotlight, or Finder.
+`make install` builds a release version, quits SonyBridge if it's running, and copies it to
+`/Applications/SonyBridge.app`. Open it from Spotlight, Launchpad or Finder.
 
-> 💡 On first launch, macOS asks for **Bluetooth permission** — allow it, otherwise SonyBridge can't
-> talk to your headphones. Pair and connect your headphones in macOS **Bluetooth settings** first.
+On first launch:
 
-**To update:** pull the latest changes and run `make install` again.
+1. Pair and connect your headphones in **System Settings › Bluetooth**.
+2. Allow **Bluetooth** access when macOS asks, or SonyBridge can't reach the headphones.
+3. With Spotify open, allow SonyBridge to **control Spotify** when macOS asks, for the notch player.
 
-**To uninstall:** quit SonyBridge, then drag `/Applications/SonyBridge.app` to the Trash. If you turned
-on **Launch at Login**, turn it off first (from the SonyBridge Options menu) so macOS doesn't keep a
-stale login item around.
+**Update:** `git pull`, then `make install` again.
 
-## 🕹️ Usage
+**Uninstall:** turn off **Launch at Login** if you enabled it, quit SonyBridge, and move
+`/Applications/SonyBridge.app` to the Trash.
 
-Click the SonyBridge icon in the menu bar to open the menu. If nothing is connected yet, choose
-**Connect…** — it uses the Sony headset already connected to macOS, or opens the macOS Bluetooth picker
-if none is connected yet.
+## Supported headphones
 
-From the menu you can:
-- switch **sound modes** (Noise Cancelling / Ambient Sound / Off) and, in Ambient Sound, adjust the level and Focus on Voice;
-- pick an **Equalizer** preset or dial in a **Manual** curve;
-- toggle **DSEE**, **Speak-to-Chat**, and **Adaptive Volume** (only the ones your model supports);
-- set **Auto Power-Off**;
-- check the battery level in the menu's header, and the firmware, codec and protocol under **About the Headphones**;
-- turn **Launch at Login**, **Connect Automatically**, and **Reconnect Automatically** on or off under **SonyBridge Options**;
-- **Disconnect** (SonyBridge then stays disconnected until you click **Connect…** again or — with **Connect Automatically** on — the headset reconnects to your Mac) or **Quit SonyBridge** (⌘Q).
+| Status | Models |
+|---|---|
+| Tested on real hardware | WH-1000XM6, WH-CH720N, Sony ULT WEAR (WH-ULT900N) |
+| Expected to work (same protocol) | WH-1000XM5, WH-XB910N, WH-CH520 |
+| Earbuds: controls work, battery format differs | WF-1000XM4, WF-1000XM5, WF-C700N, LinkBuds S |
+| Older protocol: sound modes only | WH-1000XM4, WH-1000XM3, WH-1000XM2, WH-XB900N, MDR-XB950BT |
 
-## 🎧 Supported headphones
+Only the first row has been tested. If you try another model, an issue telling how it went is very welcome.
 
-| Status | Devices |
-|--------|---------|
-| ✅ **Verified** | WH-CH720N, Sony ULT WEAR (WH-ULT900N), WH-1000XM6 |
-| 🟢 **Expected** (v2, over-ear — NC/Ambient/battery/EQ) | WH-1000XM5, WH-XB910N, WH-CH520 |
-| 🟡 **v2 earbuds** (controls work; battery format differs) | WF-1000XM4, WF-1000XM5, WF-C700N, LinkBuds S |
-| 🔵 **Legacy** (v1 protocol — NC/Ambient only) | WH-1000XM4, WH-1000XM3, WH-1000XM2, WH-XB900N, MDR-XB950BT |
-
-> The Verified models are hardware-tested. Others share the same protocol family, so the basics should
-> work — per-model quirks are untested. Reports and PRs for other devices are very welcome.
->
-> On the **WH-1000XM6**, changing the equalizer (presets and Manual) is coming in a later update (reading
-> its 10-band equalizer already works).
-
-## 🚀 Build from source
-
-Requires the **Xcode Command Line Tools** (`xcode-select --install`) — the full Xcode app is not needed.
+## Build from source
 
 ```sh
-git clone https://github.com/flotttt/SonyBridge.git
-cd SonyBridge
 make              # debug build → build/SonyBridge.app
-make run          # builds and launches the app (add DEBUG=1 to log every protocol frame)
+make run          # build and launch (add DEBUG=1 to log every Bluetooth frame)
 make test         # unit tests + translation check
-make release      # universal (Apple Silicon + Intel) build, zipped to build/SonyBridge.zip
+make release      # universal build (Apple Silicon + Intel), zipped to build/SonyBridge.zip
+make install      # release build installed to /Applications
 make clean        # remove build/
 ```
 
-`make run DEBUG=1` logs every frame exchanged with the headphones to
-`~/Library/Logs/SonyBridge/app.log` (`build/app.log` is a symlink to it).
+The log goes to `~/Library/Logs/SonyBridge/app.log` (`build/app.log` links to it).
 
-> ⚠️ Always launch SonyBridge through `open`, Finder, or `make run`/`make install` — never by running
-> `Contents/MacOS/SonyBridge` directly, or macOS's privacy protection can close the app.
+Always start the app through `open`, Finder or the `make` targets. Running
+`Contents/MacOS/SonyBridge` directly makes macOS's privacy protection close it on its first Bluetooth access.
 
-## 🔬 How it works
+The app is Swift (AppKit + SwiftUI) on top of a C++ protocol core. The code is in `Client/`: `Client/macos`
+holds the app, and the notch lives in `Client/macos/Notch` and `Client/macos/Music`.
 
-Sony headphones expose a vendor RFCOMM/SPP service. Commands are framed as:
+## How it works
+
+Sony headphones expose a vendor Bluetooth serial (RFCOMM) service. Every command is a small binary frame:
 
 ```
-<START 0x3e> ESCAPE( <TYPE> <SEQ> <4-byte BE length> <PAYLOAD> <checksum> ) <END 0x3c>
+<START 0x3e> ESCAPE( <TYPE> <SEQ> <4-byte big-endian length> <PAYLOAD> <checksum> ) <END 0x3c>
 ```
 
-Two protocol generations exist, distinguished by their SDP service UUID:
+There are two generations of this protocol, told apart by their service UUID:
 
-- **v1** — `96CC203E-…` — WH-1000XM4 and older (WH-1000XM3, WH-1000XM2, WH-XB900N…)
-- **v2** — `956C7B26-…` — WH-CH720N, Sony ULT WEAR, WH-1000XM5/XM6, WF-series, LinkBuds…
+- **v1** (`96CC203E-…`): WH-1000XM4 and older;
+- **v2** (`956C7B26-…`): WH-1000XM5/XM6, WH-CH720N, ULT WEAR, WF series, LinkBuds.
 
-On every connect, SonyBridge looks for the v1 service first and falls back to v2 (it probes again each
-time rather than remembering the result). The v2 path adds the mandatory
-init handshake and per-frame host-ACK the newer devices require, plus battery, EQ and DSEE inquiry commands.
-Protocol byte layouts were cross-referenced against
-[**GadgetBridge**](https://codeberg.org/Freeyourgadget/Gadgetbridge)'s Sony implementation.
+SonyBridge looks for v1 first and falls back to v2. The v2 path adds the start-up handshake and the
+acknowledgement every frame needs, plus the battery, equalizer and DSEE commands. Byte layouts were
+cross-checked against [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge)'s Sony support.
 
-## 🛠️ Troubleshooting
+The notch reads Spotify through the notification the Spotify app posts on every playback change and
+through AppleScript for artwork, volume and shuffle. Nothing is polled while the notch is closed.
 
-- **SonyBridge doesn't see my headphones** — pair and connect them in macOS **Bluetooth settings** first, then use **Connect…** in the menu.
-- **No Bluetooth permission prompt, or you denied it** — macOS asks for Bluetooth access on first launch; allow it, or SonyBridge can't talk to your headphones.
-- **The menu bar icon is missing** — on MacBooks with a notch, the icon can be hidden when the menu bar is full. Free up some room (quit or hide other menu bar icons).
-- **Controls stopped responding** — click **Disconnect** then **Connect…** in the menu, or turn the headphones off and on.
-- **The app quits itself right after opening** — launch it through `open`, Finder, Launchpad, Spotlight, or `make run`/`make install`, not by running `Contents/MacOS/SonyBridge` directly; macOS's privacy protection can close apps launched that way.
+## Troubleshooting
 
-## 🤝 Contributing
+- **SonyBridge doesn't find the headphones:** connect them in macOS Bluetooth settings first, then choose
+  **Connect…** in the menu.
+- **Nothing happens, no Bluetooth prompt:** check System Settings › Privacy & Security › Bluetooth.
+- **The notch shows "SonyBridge isn't allowed to control Spotify":** click **Open Settings** and enable
+  Spotify under Automation › SonyBridge.
+- **The menu bar icon is missing:** on notched MacBooks a crowded menu bar hides icons; quit or hide a few.
+- **Controls stopped responding:** **Disconnect** then **Connect…**, or turn the headphones off and on.
+- **The app closes right after opening:** launch it through Finder, Spotlight or `make run`, not the binary.
 
-Contributions are very welcome — especially **device reports** and **testing on real hardware**.
+## Origins
 
-- 🐛 **Found a bug / have a device to report?** [Open an issue](https://github.com/flotttt/SonyBridge/issues/new) with your model and what happened.
-- 🧪 **Want to test?** Build it from source (`make install`) and tell us how it behaves on your headset (a screenshot helps a lot).
-- 🔧 **Code?** Fork, branch, and open a PR against `main`. CI builds the macOS app on every PR.
+SonyBridge started as a fork of [AmitRajput-Dev/SonyBridge](https://github.com/AmitRajput-Dev/SonyBridge),
+itself based on [SonyHeadphonesClient](https://github.com/Plutoberth/SonyHeadphonesClient) (Plutoberth,
+semvis123's macOS port and contributors). It has since been reworked into its own app: menu bar interface,
+v2 protocol support, automatic connection, the notch and Spotify player.
 
-## 🙏 Credits
+## Disclaimer
 
-SonyBridge builds directly on the work of:
+Not affiliated with, endorsed by or connected to Sony. SonyBridge uses a reverse-engineered protocol for
+interoperability; use it at your own risk.
 
-- [**SonyBridge**](https://github.com/AmitRajput-Dev/SonyBridge) by AmitRajput-Dev — the original SonyBridge project this fork builds on
-- [**SonyHeadphonesClient**](https://github.com/Plutoberth/SonyHeadphonesClient) by Plutoberth, Mr-M33533K5 &amp; contributors — the original cross-platform client and protocol foundation
-- [**semvis123**](https://github.com/semvis123) — the original macOS port
-- [**GadgetBridge**](https://codeberg.org/Freeyourgadget/Gadgetbridge) — reverse-engineered v2 protocol reference
+## License
 
-## ⚠️ Disclaimer
-
-This project is **not affiliated with, endorsed by, or connected to Sony**. It talks to your headphones
-using a reverse-engineered protocol, for interoperability. Use at your own risk.
-
-## 📄 License
-
-[MIT](LICENSE) — original copyright retained; see [Credits](#-credits).
+[MIT](LICENSE). The original copyright notice is kept as the license requires.

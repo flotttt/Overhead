@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 // Minimal test runner (XCTest isn't available without Xcode). Exit code 1 on any failure.
 var failures = 0
@@ -37,6 +38,166 @@ do {
     check(!throttle.shouldSend(at: t0.addingTimeInterval(0.10), final: false), "too soon: skip")
     check(throttle.shouldSend(at: t0.addingTimeInterval(0.16), final: false), "after the interval: send")
     check(throttle.shouldSend(at: t0.addingTimeInterval(0.17), final: true), "final value always sends")
+}
+
+// NotchGeometry: a 14" MacBook Pro screen (1512 × 982 pt, notch 188 pt wide, 32 pt high).
+do {
+    let screen = ScreenMetrics(frame: CGRect(x: 0, y: 0, width: 1512, height: 982), safeAreaTop: 32,
+                               auxiliaryTopLeft: CGRect(x: 0, y: 950, width: 662, height: 32),
+                               auxiliaryTopRight: CGRect(x: 850, y: 950, width: 662, height: 32),
+                               menuBarHeight: 32)
+    let geometry = NotchGeometry(screen: screen)
+    check(geometry.hasNotch, "notched screen detected")
+    check(geometry.notch == CGRect(x: 662, y: 950, width: 188, height: 32), "notch rect was \(geometry.notch)")
+    check(geometry.extended == CGRect(x: 626, y: 950, width: 260, height: 32), "extended rect was \(geometry.extended)")
+    check(geometry.open == CGRect(x: 606, y: 816, width: 300, height: 166), "open rect was \(geometry.open)")
+    check(geometry.restingFrame(for: .empty) == geometry.notch, "empty state: bare notch")
+    check(geometry.restingFrame(for: .musicOnly) == geometry.extended, "music: extended notch")
+    check(geometry.restingTrailingZone == CGRect(x: 850, y: 950, width: 36, height: 32),
+          "resting trailing zone was \(geometry.restingTrailingZone)")
+}
+
+// NotchLayout: user sizes are clamped; the zoom never lays the open content out smaller than it needs.
+do {
+    let clamped = NotchLayout(openSize: CGSize(width: 100, height: 1000), sideExtension: 5, zoom: 3)
+    check(clamped.openSize == CGSize(width: 280, height: 260), "open size clamped, was \(clamped.openSize)")
+    check(clamped.sideExtension == 28 && clamped.zoom == 1.3, "side and zoom clamped")
+    check(clamped.contentScale == 1, "zoom limited by the width, was \(clamped.contentScale)")
+    let roomy = NotchLayout(openSize: CGSize(width: 400, height: 240), sideExtension: 60, zoom: 1.2)
+    check(roomy.contentScale == 1.2 && roomy.restingScale == 1.2, "zoom applied when the notch is large enough")
+    let narrowSides = NotchLayout(openSize: NotchLayout.default.openSize, sideExtension: 30, zoom: 1.3)
+    check(narrowSides.restingScale == 1, "resting icons limited by the side width, was \(narrowSides.restingScale)")
+    check(NotchLayout.default.contentScale == 1 && NotchLayout.default.restingScale == 1, "default: no zoom")
+    check(NotchLayout.default.restingArtworkSize(notchHeight: 32) == 24, "default resting artwork")
+    let bigArtwork = NotchLayout(openSize: NotchLayout.default.openSize, sideExtension: 36, zoom: 1, restingArtwork: 40)
+    check(bigArtwork.restingArtwork == 30, "resting artwork clamped, was \(bigArtwork.restingArtwork)")
+    check(bigArtwork.restingArtworkSize(notchHeight: 32) == 28, "resting artwork fits the notch height")
+    let thinSides = NotchLayout(openSize: NotchLayout.default.openSize, sideExtension: 28, zoom: 1, restingArtwork: 30)
+    check(thinSides.restingArtworkSize(notchHeight: 32) == 22, "resting artwork fits the side width")
+
+    let screen = ScreenMetrics(frame: CGRect(x: 0, y: 0, width: 1512, height: 982), safeAreaTop: 32,
+                               auxiliaryTopLeft: CGRect(x: 0, y: 950, width: 662, height: 32),
+                               auxiliaryTopRight: CGRect(x: 850, y: 950, width: 662, height: 32),
+                               menuBarHeight: 32)
+    let geometry = NotchGeometry(screen: screen, layout: roomy)
+    check(geometry.extended == CGRect(x: 602, y: 950, width: 308, height: 32), "custom extended was \(geometry.extended)")
+    check(geometry.open == CGRect(x: 556, y: 742, width: 400, height: 240), "custom open was \(geometry.open)")
+    check(geometry.restingTrailingZone == CGRect(x: 850, y: 950, width: 60, height: 32), "custom trailing zone")
+}
+
+// NotchGeometry: an external screen without a notch, right of the primary screen.
+do {
+    let frame = CGRect(x: 1512, y: 0, width: 2560, height: 1440)
+    let geometry = NotchGeometry(screen: ScreenMetrics(frame: frame, safeAreaTop: 0, auxiliaryTopLeft: nil,
+                                                       auxiliaryTopRight: nil, menuBarHeight: 25))
+    check(!geometry.hasNotch, "no notch")
+    check(geometry.notch == CGRect(x: 2697, y: 1415, width: 190, height: 25), "simulated pill was \(geometry.notch)")
+    check(geometry.restingFrame(for: .empty) == nil, "empty state hides the pill")
+    check(geometry.restingFrame(for: .headphonesOnly) == geometry.extended, "headphones: extended pill")
+
+    let autoHidden = NotchGeometry(screen: ScreenMetrics(frame: frame, safeAreaTop: 0, auxiliaryTopLeft: nil,
+                                                         auxiliaryTopRight: nil, menuBarHeight: 0))
+    check(autoHidden.notch.height == 24, "auto-hidden menu bar: fallback pill height")
+    let partial = NotchGeometry(screen: ScreenMetrics(frame: frame, safeAreaTop: 32, auxiliaryTopLeft: nil,
+                                                      auxiliaryTopRight: nil, menuBarHeight: 32))
+    check(!partial.hasNotch, "safe area without auxiliary areas: no notch")
+}
+
+// NotchContent: resting state (spec §4.1), tab on opening, hover delays.
+do {
+    check(NotchContent.restingState(hasMusic: true, headphonesConnected: true) == .musicAndHeadphones, "state 1")
+    check(NotchContent.restingState(hasMusic: true, headphonesConnected: false) == .musicOnly, "state 2")
+    check(NotchContent.restingState(hasMusic: false, headphonesConnected: true) == .headphonesOnly, "state 3")
+    check(NotchContent.restingState(hasMusic: false, headphonesConnected: false) == .empty, "state 4")
+    check(NotchContent.tabOnOpen(lastChosen: nil, hasMusic: true) == .music, "first open with music: Music")
+    check(NotchContent.tabOnOpen(lastChosen: nil, hasMusic: false) == .headphones, "first open without music: Headphones")
+    check(NotchContent.tabOnOpen(lastChosen: .headphones, hasMusic: true) == .headphones, "then the last chosen tab")
+    check(NotchContent.openDelay == 0.15 && NotchContent.closeDelay == 0.4, "hover delays")
+}
+
+// PlaybackClock: live position from the last known one; display format.
+do {
+    let t0 = Date(timeIntervalSince1970: 1_000)
+    var track = NowPlaying(trackID: "spotify:track:1", title: "A", artist: "B", album: "C", artworkURL: nil,
+                           duration: 200, position: 30, positionDate: t0, isPlaying: true, volume: 50,
+                           isShuffling: nil, deviceName: nil,
+                           capabilities: MusicCapabilities(canSeek: true, canSetVolume: true, canChangeDevice: false))
+    check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(12)) == 42, "playing: advances")
+    check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(500)) == 200, "bounded by the duration")
+    check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(-40)) == 0, "never negative")
+    track.isPlaying = false
+    check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(12)) == 30, "paused: frozen")
+    track.isPlaying = true
+    track.duration = 0
+    check(PlaybackClock.position(of: track, at: t0.addingTimeInterval(500)) == 530, "unknown duration: not bounded")
+    let nextTrack = NowPlaying(trackID: "spotify:track:2", title: "D", artist: "E", album: "F", artworkURL: nil,
+                               duration: 180, position: 0, positionDate: t0.addingTimeInterval(100), isPlaying: true,
+                               volume: 50, isShuffling: nil, deviceName: nil, capabilities: track.capabilities)
+    check(PlaybackClock.position(of: nextTrack, at: t0.addingTimeInterval(100)) == 0, "track change: starts from 0")
+    check(PlaybackClock.format(65) == "1:05", "format 1:05 was \(PlaybackClock.format(65))")
+    check(PlaybackClock.format(754.9) == "12:34", "format rounds down")
+    check(PlaybackClock.format(3723) == "1:02:03", "format with hours")
+    check(PlaybackClock.format(-3) == "0:00", "format never negative")
+}
+
+// SpotifyPlaybackInfo: the PlaybackStateChanged signal (spec §6.1).
+do {
+    let t0 = Date(timeIntervalSince1970: 1_000)
+    let signal: [AnyHashable: Any] = [
+        "Player State": "Playing", "Track ID": "spotify:track:42", "Name": "Midnight City", "Artist": "M83",
+        "Album": "Hurry Up, We're Dreaming", "Duration": NSNumber(value: 243_000), "Playback Position": NSNumber(value: 12.5),
+    ]
+    if case .track(let track) = SpotifyPlaybackInfo.parse(signal: signal, at: t0) {
+        check(track.trackID == "spotify:track:42" && track.title == "Midnight City" && track.artist == "M83", "signal: names")
+        check(track.duration == 243 && track.position == 12.5 && track.positionDate == t0 && track.isPlaying, "signal: timing")
+        check(track.artworkURL == nil && track.volume == nil && track.isShuffling == nil && track.deviceName == nil,
+              "signal: no artwork, volume or shuffle, this Mac")
+        check(track.capabilities == SpotifyPlaybackInfo.localCapabilities, "signal: local capabilities")
+    } else {
+        check(false, "signal with full info decodes to a track")
+    }
+    var paused = signal
+    paused["Player State"] = "Paused"
+    paused["Playback Position"] = nil
+    if case .track(let track) = SpotifyPlaybackInfo.parse(signal: paused, at: t0) {
+        check(!track.isPlaying && track.position == 0, "paused, no position: 0")
+    } else {
+        check(false, "paused signal decodes to a track")
+    }
+    check(SpotifyPlaybackInfo.parse(signal: ["Player State": "Stopped"], at: t0) == .stopped, "signal: stopped")
+    check(SpotifyPlaybackInfo.parse(signal: nil, at: t0) == .incomplete, "signal without userInfo: incomplete")
+    check(SpotifyPlaybackInfo.parse(signal: ["Player State": "Playing"], at: t0) == .incomplete, "signal without track id: incomplete")
+}
+
+// SpotifyPlaybackInfo: the text SpotifyScript.readState returns (fields separated by U+001F).
+do {
+    let t0 = Date(timeIntervalSince1970: 1_000)
+    let sep = "\u{1F}"
+    let text = ["paused", "spotify:track:7", "Title", "Artist", "Album", "180000", "61500",
+                "https://i.scdn.co/image/ab", "70", "true"].joined(separator: sep)
+    if case .track(let track) = SpotifyPlaybackInfo.parse(scriptResult: text, at: t0) {
+        check(!track.isPlaying && track.duration == 180 && track.position == 61.5, "script: timing")
+        check(track.artworkURL == URL(string: "https://i.scdn.co/image/ab") && track.volume == 70, "script: artwork and volume")
+        check(track.isShuffling == true, "script: shuffle on")
+        check(track.title == "Title" && track.album == "Album" && track.positionDate == t0, "script: names")
+    } else {
+        check(false, "script result decodes to a track")
+    }
+    let local = ["playing", "spotify:local:x", "T", "", "", "1000", "0", "", "101", "false"].joined(separator: sep)
+    if case .track(let track) = SpotifyPlaybackInfo.parse(scriptResult: local, at: t0) {
+        check(track.artworkURL == nil && track.volume == 100 && track.artist.isEmpty, "script: empty fields, volume clamped")
+        check(track.isShuffling == false, "script: shuffle off")
+    } else {
+        check(false, "script result with empty fields decodes to a track")
+    }
+    check(SpotifyPlaybackInfo.parse(scriptResult: "stopped", at: t0) == .stopped, "script: stopped")
+    check(SpotifyPlaybackInfo.parse(scriptResult: "garbage", at: t0) == .incomplete, "script: malformed")
+    let unknownShuffle = ["playing", "spotify:track:8", "T", "A", "B", "1000", "0", "", "50", "?"].joined(separator: sep)
+    if case .track(let track) = SpotifyPlaybackInfo.parse(scriptResult: unknownShuffle, at: t0) {
+        check(track.isShuffling == nil, "script: unreadable shuffle is unknown")
+    } else {
+        check(false, "script result with an unreadable shuffle decodes to a track")
+    }
 }
 
 if failures > 0 {

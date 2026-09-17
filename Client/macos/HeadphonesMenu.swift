@@ -29,6 +29,9 @@ final class HeadphonesMenu {
     private var launchAtLoginItem = NSMenuItem()
     private var autoConnectItem = NSMenuItem()
     private var autoReconnectItem = NSMenuItem()
+    private var showNotchItem = NSMenuItem()
+    private let notchSizeItem = NSMenuItem()
+    private let notchSizeMenuDelegate = NotchSizeMenuDelegate()
 
     private static var presets: [(Int, String)] {
         [(0x00, tr("Off")), (0x10, tr("Bright")), (0x11, tr("Excited")), (0x12, tr("Mellow")),
@@ -156,7 +159,9 @@ final class HeadphonesMenu {
         launchAtLoginItem = ActionMenuItem(tr("Launch at Login")) { [weak self] in self?.toggleLaunchAtLogin() }
         autoConnectItem = ActionMenuItem(tr("Connect Automatically")) { [weak settings] in settings?.autoConnect.toggle() }
         autoReconnectItem = ActionMenuItem(tr("Reconnect Automatically")) { [weak settings] in settings?.autoReconnect.toggle() }
-        for item in [launchAtLoginItem, autoConnectItem, autoReconnectItem] { optionsMenu.addItem(item) }
+        showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
+        for item in [launchAtLoginItem, autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
+        optionsMenu.addItem(makeNotchSizeItem())
         let optionsItem = NSMenuItem(title: tr("SonyBridge Options"), action: nil, keyEquivalent: "")
         optionsItem.submenu = optionsMenu
         menu.addItem(optionsItem)
@@ -218,6 +223,35 @@ final class HeadphonesMenu {
         launchAtLoginItem.state = settings.launchAtLogin ? .on : .off
         autoConnectItem.state = settings.autoConnect ? .on : .off
         autoReconnectItem.state = settings.autoReconnect ? .on : .off
+        showNotchItem.state = settings.showNotch ? .on : .off
+        notchSizeItem.isEnabled = settings.showNotch
+    }
+
+    // Options › Notch Size: sliders applied live, the notch staying open as a preview while the submenu is open.
+    private func makeNotchSizeItem() -> NSMenuItem {
+        let sizeMenu = NSMenu()
+        sizeMenu.autoenablesItems = false
+        notchSizeMenuDelegate.settings = settings
+        sizeMenu.delegate = notchSizeMenuDelegate
+        let points: (Double) -> String = { String(Int($0.rounded())) }
+        let percent: (Double) -> String = { "\(Int(($0 * 100).rounded())) %" }
+        let rows: [(String, ReferenceWritableKeyPath<AppSettings, Double>, ClosedRange<CGFloat>, (Double) -> String)] = [
+            (tr("Open Width"), \.notchWidth, NotchLayout.widthRange, points),
+            (tr("Open Height"), \.notchHeight, NotchLayout.heightRange, points),
+            (tr("Closed Width"), \.notchSideWidth, NotchLayout.sideRange, points),
+            (tr("Closed Artwork"), \.notchArtwork, NotchLayout.artworkRange, points),
+            (tr("Text Size"), \.notchZoom, NotchLayout.zoomRange, percent),
+        ]
+        for (title, keyPath, range, format) in rows {
+            sizeMenu.addItem(hostingMenuItem(width: MenuMetrics.width + 40) {
+                NotchSizeRow(settings: settings, title: title, keyPath: keyPath, range: range, format: format)
+            })
+        }
+        sizeMenu.addItem(.separator())
+        sizeMenu.addItem(ActionMenuItem(tr("Reset Size")) { [weak settings] in settings?.resetNotchSize() })
+        notchSizeItem.title = tr("Notch Size")
+        notchSizeItem.submenu = sizeMenu
+        return notchSizeItem
     }
 
     private func updateAbout() {
@@ -255,4 +289,12 @@ final class HeadphonesMenu {
             model.connect()
         }
     }
+}
+
+// Opens the notch as a live preview while the Notch Size submenu is open.
+private final class NotchSizeMenuDelegate: NSObject, NSMenuDelegate {
+    weak var settings: AppSettings?
+
+    func menuWillOpen(_ menu: NSMenu) { settings?.notchPreviewing = true }
+    func menuDidClose(_ menu: NSMenu) { settings?.notchPreviewing = false }
 }
