@@ -66,8 +66,17 @@ jobs:
           security import "$RUNNER_TEMP/signing.p12" -k "$KEYCHAIN" -P "$SIGNING_CERT_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
           rm "$RUNNER_TEMP/signing.p12"
+          # codesign only looks for identities in the keychain search list, whatever --keychain says.
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          security find-identity -p codesigning "$KEYCHAIN"
+          # The certificate's SHA-1 names it without a lookup by common name.
+          HASH=$(security find-certificate -c "SonyNotch Code Signing" -Z "$KEYCHAIN" | awk '/SHA-1 hash:/ { print $NF }')
+          if [ -z "$HASH" ]; then
+            echo "The signing certificate isn't in the keychain."
+            exit 1
+          fi
           echo "SIGN_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
-          echo "SIGN_IDENTITY=SonyNotch Code Signing" >> "$GITHUB_ENV"
+          echo "SIGN_IDENTITY=$HASH" >> "$GITHUB_ENV"
 
       - name: Build (release, universal)
         run: make release
