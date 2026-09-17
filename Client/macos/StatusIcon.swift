@@ -12,8 +12,8 @@ enum StatusIcon {
 
     static func image(connected: Bool, mode: SHCAmbientMode) -> NSImage? {
         let name = connected ? symbolName(for: mode) : "headphones"
-        let image = NSImage(systemSymbolName: name, accessibilityDescription: "SonyBridge")
-            ?? NSImage(systemSymbolName: "headphones", accessibilityDescription: "SonyBridge")
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: "SonyNotch")
+            ?? NSImage(systemSymbolName: "headphones", accessibilityDescription: "SonyNotch")
         image?.isTemplate = true // macOS tints it for light/dark menu bars
         return image
     }

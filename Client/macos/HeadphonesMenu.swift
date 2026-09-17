@@ -162,13 +162,13 @@ final class HeadphonesMenu {
         showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
         for item in [launchAtLoginItem, autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
         optionsMenu.addItem(makeNotchSizeItem())
-        let optionsItem = NSMenuItem(title: tr("SonyBridge Options"), action: nil, keyEquivalent: "")
+        let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
         optionsItem.submenu = optionsMenu
         menu.addItem(optionsItem)
         connectItem = ActionMenuItem(tr("Connect…")) { [weak self] in self?.toggleConnection() }
         menu.addItem(connectItem)
         menu.addItem(.separator())
-        menu.addItem(ActionMenuItem(tr("Quit SonyBridge"), key: "q") { NSApp.terminate(nil) })
+        menu.addItem(ActionMenuItem(tr("Quit SonyNotch"), key: "q") { NSApp.terminate(nil) })
     }
 
     // MARK: - Updating

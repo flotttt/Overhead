@@ -18,7 +18,7 @@ final class SpotifyLocalSource: MusicSource {
     private var workspaceObservers: [NSObjectProtocol] = []
 
     // Every NSAppleScript is created and run on this serial queue, one at a time.
-    private let scriptQueue = DispatchQueue(label: "com.sonybridge.spotify")
+    private let scriptQueue = DispatchQueue(label: "com.sonynotch.spotify")
     private var readScript: NSAppleScript?  // scriptQueue only
     private var consentGranted = false  // scriptQueue only
 

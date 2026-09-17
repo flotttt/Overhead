@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds build/SonyBridge.app with the Command Line Tools only (no Xcode needed).
+# Builds build/SonyNotch.app with the Command Line Tools only (no Xcode needed).
 #   CONFIG=debug|release (default: debug)
 #   ARCHS="arm64 x86_64"  (default: this Mac's architecture; several = universal binary via lipo)
 #   DEBUG_PROTOCOL=1      (hex-dumps every frame exchanged with the headphones to stderr)
@@ -10,7 +10,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CORE=$ROOT/Client
 MAC=$CORE/macos
 OUT=$ROOT/build
-APP=$OUT/SonyBridge.app
+APP=$OUT/SonyNotch.app
 SDK=$(xcrun --show-sdk-path)
 CONFIG=${CONFIG:-debug}
 ARCHS=${ARCHS:-$(uname -m)}
@@ -36,7 +36,7 @@ for ARCH in $ARCHS; do
 
     echo "== [$ARCH] Swift"
     swiftc -target "$TARGET" -sdk "$SDK" -swift-version 5 $SWIFT_OPT $SWIFT_DEFINES -wmo -parse-as-library \
-        -module-name SonyBridge \
+        -module-name SonyNotch \
         -import-objc-header "$MAC/SonyHeadphonesClient-Bridging-Header.h" -I "$MAC" -I "$CORE" \
         -c "${SWIFT_SOURCES[@]}" -o "$OBJ/swift.o"
 
@@ -49,13 +49,13 @@ for ARCH in $ARCHS; do
     done
 
     echo "== [$ARCH] Link"
-    swiftc -target "$TARGET" -sdk "$SDK" "$OBJ"/*.o -o "$OBJ/SonyBridge" -lc++ \
+    swiftc -target "$TARGET" -sdk "$SDK" "$OBJ"/*.o -o "$OBJ/SonyNotch" -lc++ \
         -framework AppKit -framework SwiftUI -framework Combine -framework IOBluetooth \
         -framework IOBluetoothUI -framework ServiceManagement
-    BINARIES="$BINARIES $OBJ/SonyBridge"
+    BINARIES="$BINARIES $OBJ/SonyNotch"
 done
 
-lipo -create $BINARIES -output "$APP/Contents/MacOS/SonyBridge"
+lipo -create $BINARIES -output "$APP/Contents/MacOS/SonyNotch"
 
 echo "== Resources"
 cp "$MAC/info.plist" "$APP/Contents/Info.plist"
