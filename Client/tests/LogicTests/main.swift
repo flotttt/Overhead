@@ -219,6 +219,11 @@ do {
                                duration: 180, position: 0, positionDate: t0.addingTimeInterval(100), isPlaying: true,
                                volume: 50, deviceName: nil, capabilities: track.capabilities)
     check(PlaybackClock.position(of: nextTrack, at: t0.addingTimeInterval(100)) == 0, "track change: starts from 0")
+    check(PlaybackClock.progress(of: nextTrack, at: t0.addingTimeInterval(145)) == 0.25, "progress: a quarter in")
+    var unknownLength = nextTrack
+    unknownLength.duration = 0
+    check(PlaybackClock.progress(of: unknownLength, at: t0.addingTimeInterval(145)) == 0, "progress without a duration")
+    check(PlaybackClock.progress(of: nextTrack, at: t0.addingTimeInterval(1_000)) == 1, "progress capped at the end")
     check(PlaybackClock.format(65) == "1:05", "format 1:05 was \(PlaybackClock.format(65))")
     check(PlaybackClock.format(754.9) == "12:34", "format rounds down")
     check(PlaybackClock.format(3723) == "1:02:03", "format with hours")

@@ -8,6 +8,7 @@ final class NotchViewState: ObservableObject {
     @Published var trailingHovered = false     // pointer over the resting music control
     @Published var scrolledVolume: Int?         // Spotify volume being set by scrolling over the notch
     @Published var artworkGlow = true           // Options › Glow
+    @Published var progressRing = true          // Options › Progress Ring
     @Published var glowSize: CGFloat = 1        // times the default glow size
     @Published var resting: NotchRestingState = .empty
     @Published var tab: NotchTab = .music
@@ -114,6 +115,11 @@ struct NotchView: View {
                         isBackward: { [music] in music.trackChangeIsBackward },
                         size: state.restingArtworkSize,
                         cornerRadius: state.restingArtworkSize * 0.25)
+                .overlay {
+                    if state.progressRing, let track = music.nowPlaying {
+                        ProgressRing(track: track, color: music.artworkTint, size: state.restingArtworkSize)
+                    }
+                }
         case .headphonesOnly:
             Image(systemName: "headphones").font(.system(size: 13 * state.restingScale)).foregroundColor(.white)
         case .empty:
@@ -299,6 +305,32 @@ final class ArtworkFlip: ObservableObject {
         instant.disablesAnimations = true
         withTransaction(instant) { angle = backward ? 90 : -90 }
         withAnimation(.spring(response: 0.34, dampingFraction: 0.78)) { angle = 0 }
+    }
+}
+
+// How far the track is, drawn on the resting artwork's edge from the top, clockwise. Redrawn once a second.
+private struct ProgressRing: View {
+    let track: NowPlaying
+    let color: NSColor?
+    let size: CGFloat
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: size * 0.25)
+        let lineWidth = max(1.5, size * 0.08)
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            ZStack {
+                shape.stroke(Color.black.opacity(0.35), lineWidth: lineWidth)
+                shape
+                    .trim(from: 0, to: PlaybackClock.progress(of: track, at: context.date))
+                    .stroke(color.map(Color.init(nsColor:)) ?? Color(white: 0.85),
+                            style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    // A square turned a quarter is the same square: the stroke now starts at the top.
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 1), value: PlaybackClock.progress(of: track, at: context.date))
+            }
+            .padding(lineWidth / 2)
+        }
+        .allowsHitTesting(false)
     }
 }
 

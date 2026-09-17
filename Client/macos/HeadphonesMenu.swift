@@ -33,6 +33,7 @@ final class HeadphonesMenu {
     private var autoReconnectItem = NSMenuItem()
     private var showNotchItem = NSMenuItem()
     private var artworkGlowItem = NSMenuItem()
+    private var progressRingItem = NSMenuItem()
     private let glowItem = NSMenuItem()
     private let notchSizeItem = NSMenuItem()
     private var updateItem = NSMenuItem()
@@ -177,6 +178,8 @@ final class HeadphonesMenu {
         autoReconnectItem = ActionMenuItem(tr("Reconnect Automatically")) { [weak settings] in settings?.autoReconnect.toggle() }
         showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
         for item in [autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
+        progressRingItem = ActionMenuItem(tr("Progress Ring")) { [weak settings] in settings?.progressRing.toggle() }
+        optionsMenu.addItem(progressRingItem)
         optionsMenu.addItem(makeGlowItem())
         optionsMenu.addItem(makeNotchSizeItem())
         optionsMenu.addItem(makeGesturesItem())
@@ -247,6 +250,8 @@ final class HeadphonesMenu {
         showNotchItem.state = settings.showNotch ? .on : .off
         artworkGlowItem.state = settings.artworkGlow ? .on : .off
         glowItem.isEnabled = settings.showNotch
+        progressRingItem.state = settings.progressRing ? .on : .off
+        progressRingItem.isEnabled = settings.showNotch
         notchSizeItem.isEnabled = settings.showNotch
         gesturesItem.isEnabled = settings.showNotch
         for (item, keyPath) in gestureItems {
