@@ -115,6 +115,30 @@ do {
     check(NotchContent.openDelay == 0.15 && NotchContent.closeDelay == 0.4, "hover delays")
 }
 
+// AppVersion / ReleaseInfo: is the latest GitHub release newer than this app?
+do {
+    check(AppVersion("1.0.0")! < AppVersion("1.0.1")!, "patch is newer")
+    check(AppVersion("1.10.0")! > AppVersion("1.9.9")!, "numeric, not alphabetical")
+    check(AppVersion("v1.2")! == AppVersion("1.2.0")!, "leading v and missing zeros")
+    check(AppVersion("2.0.0-beta.1")! == AppVersion("2.0.0")!, "pre-release suffix ignored")
+    check(AppVersion("abc") == nil && AppVersion("") == nil, "not a version")
+
+    let json = """
+        {"tag_name": "v1.1.0", "html_url": "https://github.com/flotttt/SonyNotch/releases/tag/v1.1.0",
+         "draft": false, "prerelease": false, "name": "SonyNotch 1.1.0"}
+        """
+    let latest = ReleaseInfo.parse(json: Data(json.utf8))
+    check(latest?.version == AppVersion("1.1.0") && latest?.tag == "v1.1.0", "release parsed")
+    check(latest?.pageURL == URL(string: "https://github.com/flotttt/SonyNotch/releases/tag/v1.1.0"), "release page")
+    check(ReleaseInfo.update(currentVersion: "1.0.0", latest: latest) == latest, "older app: update available")
+    check(ReleaseInfo.update(currentVersion: "1.1.0", latest: latest) == nil, "same version: no update")
+    check(ReleaseInfo.update(currentVersion: "1.2.0", latest: latest) == nil, "newer app: no update")
+    check(ReleaseInfo.update(currentVersion: "dev", latest: latest) == nil, "unknown app version: no update")
+    let prerelease = json.replacingOccurrences(of: "\"prerelease\": false", with: "\"prerelease\": true")
+    check(ReleaseInfo.parse(json: Data(prerelease.utf8)) == nil, "pre-releases ignored")
+    check(ReleaseInfo.parse(json: Data("{}".utf8)) == nil, "malformed reply")
+}
+
 // PlaybackClock: live position from the last known one; display format.
 do {
     let t0 = Date(timeIntervalSince1970: 1_000)

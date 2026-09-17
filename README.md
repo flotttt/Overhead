@@ -7,28 +7,44 @@ Bluetooth headphones. It also turns the MacBook notch into a small player for th
 
 ## Install
 
+### With Homebrew
+
+If you use [Homebrew](https://brew.sh), run:
+
+```sh
+brew install --cask flotttt/tap/sonynotch
+```
+
+That's it. Open SonyNotch from your Applications folder.
+
+### Without Homebrew
+
 1. Download **SonyNotch.zip** from the [latest release](https://github.com/flotttt/SonyNotch/releases/latest)
 2. Open the zip and drag **SonyNotch** into your Applications folder
 3. Open SonyNotch. The first time, macOS says it can't check the app because it isn't signed with an Apple
    developer account yet. Click Done, then go to System Settings › Privacy & Security, scroll down and click
    **Open Anyway**
 
-SonyNotch then appears in the menu bar. Allow Bluetooth access when macOS asks, and allow SonyNotch to control
-Spotify for the notch player.
+### First launch
 
-If your headphones aren't connected to the Mac yet, pair them in System Settings › Bluetooth first.
+SonyNotch appears in the menu bar. Allow Bluetooth access when macOS asks, and allow SonyNotch to control
+Spotify for the notch player. If your headphones aren't connected to the Mac yet, pair them in System Settings ›
+Bluetooth first.
 
 Works on macOS 13 or later, on Apple Silicon and Intel Macs.
 
 ## Update
 
-Download the new SonyNotch.zip from the [latest release](https://github.com/flotttt/SonyNotch/releases/latest),
-quit SonyNotch and replace the app in Applications. Your settings are kept. macOS may ask for the Bluetooth and
-Spotify permissions again.
+SonyNotch checks once a day for a new version. When one is out, an Update Available item shows up in its menu.
+
+With Homebrew, run `brew upgrade --cask sonynotch`. Without Homebrew, click Update Available to open the
+download page, then replace the app in Applications as when you installed it. Your settings are kept, but
+macOS may ask for the Bluetooth and Spotify permissions again.
 
 ## Uninstall
 
-If you turned on Launch at Login, turn it off first. Then quit SonyNotch and move it to the Trash.
+If you turned on Launch at Login, turn it off first. Then run `brew uninstall --cask sonynotch`, or quit
+SonyNotch and move it to the Trash.
 
 ## What it does
 
@@ -121,8 +137,9 @@ is in `Client/`, and the notch is in `Client/macos/Notch` and `Client/macos/Musi
 
 ### Publish a release
 
-Push a version tag. GitHub Actions runs the tests, builds the app with that version number and attaches
-SonyNotch.zip to the release.
+Push a version tag. GitHub Actions runs the tests, builds the app with that version number, attaches
+SonyNotch.zip to the release and updates the Homebrew cask in
+[flotttt/homebrew-tap](https://github.com/flotttt/homebrew-tap).
 
 ```sh
 git tag v1.1.0

@@ -15,6 +15,7 @@ swiftc -target "$TARGET" -sdk "$SDK" -swift-version 5 \
     "$MAC/ReconnectPolicy.swift" "$MAC/PollGuard.swift" "$MAC/SendThrottle.swift" \
     "$MAC/Notch/NotchGeometry.swift" "$MAC/Notch/NotchContent.swift" \
     "$MAC/Music/NowPlaying.swift" "$MAC/Music/PlaybackClock.swift" "$MAC/Music/SpotifyPlaybackInfo.swift" \
+    "$MAC/Updates/ReleaseInfo.swift" \
     -o "$OUT/LogicTests"
 "$OUT/LogicTests"
 
