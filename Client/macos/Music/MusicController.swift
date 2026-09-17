@@ -13,6 +13,9 @@ final class MusicController: ObservableObject {
     }
     @Published private(set) var artworkTint: NSColor?  // vivid average colour of the artwork
 
+    // The last previous / next asked from SonyNotch, so the artwork can flip the matching way.
+    private(set) var lastSkip: (backward: Bool, date: Date)?
+
     // Something to show: a track, playing or paused (even without the right to control it).
     var hasMusic: Bool { status != .notRunning && nowPlaying != nil }
 
@@ -70,9 +73,21 @@ final class MusicController: ObservableObject {
 
     func playPause() { source.playPause() }
 
-    func next() { source.next() }
+    func next() {
+        lastSkip = (false, Date())
+        source.next()
+    }
 
-    func previous() { source.previous() }
+    func previous() {
+        lastSkip = (true, Date())
+        source.previous()
+    }
+
+    // True when the current track change follows a "previous" asked within the last few seconds.
+    var trackChangeIsBackward: Bool {
+        guard let skip = lastSkip else { return false }
+        return skip.backward && Date().timeIntervalSince(skip.date) < 3
+    }
 
     // Sliders: at most one command per 150 ms while dragging, the final value always, then a read-back.
     func seek(to seconds: TimeInterval, final: Bool) {

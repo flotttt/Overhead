@@ -106,7 +106,10 @@ struct NotchView: View {
     @ViewBuilder private var leadingItem: some View {
         switch state.resting {
         case .musicAndHeadphones, .musicOnly:
-            ArtworkView(image: music.artwork, size: state.restingArtworkSize, cornerRadius: state.restingArtworkSize * 0.25)
+            ArtworkView(image: music.artwork, trackID: music.nowPlaying?.trackID,
+                        isBackward: { [music] in music.trackChangeIsBackward },
+                        size: state.restingArtworkSize,
+                        cornerRadius: state.restingArtworkSize * 0.25)
         case .headphonesOnly:
             Image(systemName: "headphones").font(.system(size: 13 * state.restingScale)).foregroundColor(.white)
         case .empty:
@@ -162,28 +165,120 @@ struct NotchView: View {
     }
 }
 
-// Album artwork, or a placeholder note while it loads (or for tracks without one).
+// Album artwork, or a placeholder note while it loads (or for tracks without one). When `trackID` changes the
+// card flips like Spotify's, backwards after "previous".
 struct ArtworkView: View {
     let image: NSImage?
+    var trackID: String?
+    var isBackward: () -> Bool = { false }  // read when the track changes
     let size: CGFloat
     let cornerRadius: CGFloat
 
+    @StateObject private var flip = ArtworkFlip()
+
     var body: some View {
-        Group {
-            if let image = image {
-                Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
-                    .id(ObjectIdentifier(image))
-                    .transition(.opacity)
-            } else {
-                ZStack {
-                    Color(white: 0.2)
-                    Image(systemName: "music.note").font(.system(size: size * 0.45)).foregroundColor(.gray)
-                }
+        face(flip.shown)
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .rotation3DEffect(.degrees(flip.angle), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
+            .onAppear { flip.start(image: image, trackID: trackID) }
+            // Only the values passed in are new: the closure itself belongs to the previous render, so reading
+            // `image` or `trackID` in it gives the old ones.
+            .onChange(of: trackID) { newTrackID in flip.trackChanged(to: newTrackID, backward: isBackward()) }
+            .onChange(of: image) { newImage in flip.imageChanged(to: newImage) }
+    }
+
+    @ViewBuilder private func face(_ image: NSImage?) -> some View {
+        if let image = image {
+            Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+        } else {
+            ZStack {
+                Color(white: 0.2)
+                Image(systemName: "music.note").font(.system(size: size * 0.45)).foregroundColor(.gray)
             }
         }
-        .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-        .animation(.easeInOut(duration: 0.3), value: image.map(ObjectIdentifier.init))
+    }
+}
+
+// The flip itself. A reference type on purpose: its delayed steps must read the latest artwork, whereas a
+// closure in a View struct keeps the values of the render that created it (which showed a previous track's
+// artwork after quick skips). The card turns to its edge, waits there for the new track's artwork (downloaded
+// after the track change, at most `flipWait`), then turns the rest of the way showing it.
+final class ArtworkFlip: ObservableObject {
+    private static let flipWait: TimeInterval = 1
+    private static let halfFlip: TimeInterval = 0.16
+
+    @Published private(set) var shown: NSImage?
+    @Published private(set) var angle: Double = 0
+
+    private var latestImage: NSImage?
+    private var latestTrackID: String?
+    private var shownTrackID: String?
+    private var atEdge = false
+    private var receivedImage = false  // an artwork was published since the track changed (maybe the same album's)
+    private var backward = false
+    private var generation = 0  // bumped on every track change; older delayed steps give up
+
+    func start(image: NSImage?, trackID: String?) {
+        latestImage = image
+        latestTrackID = trackID
+        shown = image
+        shownTrackID = trackID
+    }
+
+    // Called before imageChanged when both change together: the new artwork is read later, at the edge.
+    func trackChanged(to trackID: String?, backward: Bool) {
+        latestTrackID = trackID
+        guard trackID != shownTrackID else { return }
+        if NotchMotion.reduceMotion || shownTrackID == nil {
+            withAnimation(.easeInOut(duration: 0.25)) { shown = latestImage }
+            shownTrackID = trackID
+            return
+        }
+        generation += 1
+        let current = generation
+        self.backward = backward
+        receivedImage = false
+        if !atEdge {
+            withAnimation(.easeIn(duration: Self.halfFlip)) { angle = backward ? -90 : 90 }
+        }
+        let previousImage = shown
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.halfFlip) { [weak self] in
+            guard let self = self, self.generation == current else { return }
+            self.atEdge = true
+            // The new artwork may already be there (cached, or the same album's); otherwise wait for it, not forever.
+            if let image = self.latestImage, image !== previousImage || self.receivedImage {
+                self.flipIn()
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.flipWait) { [weak self] in
+                guard let self = self, self.generation == current else { return }
+                self.flipIn()
+            }
+        }
+    }
+
+    func imageChanged(to image: NSImage?) {
+        latestImage = image
+        if image != nil && latestTrackID != shownTrackID { receivedImage = true }
+        if atEdge {
+            if image != nil { flipIn() }
+        } else if latestTrackID == shownTrackID {
+            // Same track, artwork arriving late (or first launch): no flip, just a fade.
+            withAnimation(.easeInOut(duration: 0.25)) { shown = image }
+        }
+    }
+
+    private func flipIn() {
+        guard atEdge else { return }
+        atEdge = false
+        generation += 1  // cancels a pending timeout
+        shown = latestImage
+        shownTrackID = latestTrackID
+        var instant = Transaction()
+        instant.disablesAnimations = true
+        withTransaction(instant) { angle = backward ? 90 : -90 }
+        withAnimation(.spring(response: 0.34, dampingFraction: 0.78)) { angle = 0 }
     }
 }
 
