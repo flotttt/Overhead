@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import SwiftUI
 
 // The status item's menu. Built once; update() refreshes states, visibility and values in place,
 // including while the menu is open.
@@ -31,9 +32,19 @@ final class HeadphonesMenu {
     private var autoConnectItem = NSMenuItem()
     private var autoReconnectItem = NSMenuItem()
     private var showNotchItem = NSMenuItem()
+    private var artworkGlowItem = NSMenuItem()
+    private var progressRingItem = NSMenuItem()
+    private var headphonesBatteryItem = NSMenuItem()
+    private let glowItem = NSMenuItem()
     private let notchSizeItem = NSMenuItem()
     private var updateItem = NSMenuItem()
+    private let gesturesItem = NSMenuItem()
+    private var gestureItems: [(NSMenuItem, ReferenceWritableKeyPath<AppSettings, Bool>)] = []
     private let notchSizeMenuDelegate = NotchSizeMenuDelegate()
+    private let gesturesMenuDelegate = NotchSizeMenuDelegate()
+    // SwiftUI sliders in a submenu stop taking clicks once the submenu has been closed and opened again, so their
+    // rows are rebuilt each time their submenu opens (see sliderMenuItem).
+    private var sliderRowBuilders: [ObjectIdentifier: () -> NSView?] = [:]
 
     private static var presets: [(Int, String)] {
         [(0x00, tr("Off")), (0x10, tr("Bright")), (0x11, tr("Excited")), (0x12, tr("Mellow")),
@@ -168,7 +179,13 @@ final class HeadphonesMenu {
         autoReconnectItem = ActionMenuItem(tr("Reconnect Automatically")) { [weak settings] in settings?.autoReconnect.toggle() }
         showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
         for item in [autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
+        progressRingItem = ActionMenuItem(tr("Progress Ring")) { [weak settings] in settings?.progressRing.toggle() }
+        optionsMenu.addItem(progressRingItem)
+        headphonesBatteryItem = ActionMenuItem(tr("Headphones Battery")) { [weak settings] in settings?.headphonesBattery.toggle() }
+        optionsMenu.addItem(headphonesBatteryItem)
+        optionsMenu.addItem(makeGlowItem())
         optionsMenu.addItem(makeNotchSizeItem())
+        optionsMenu.addItem(makeGesturesItem())
         let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
         optionsItem.submenu = optionsMenu
         menu.addItem(optionsItem)
@@ -234,7 +251,20 @@ final class HeadphonesMenu {
         autoConnectItem.state = settings.autoConnect ? .on : .off
         autoReconnectItem.state = settings.autoReconnect ? .on : .off
         showNotchItem.state = settings.showNotch ? .on : .off
+        artworkGlowItem.state = settings.artworkGlow ? .on : .off
+        glowItem.isEnabled = settings.showNotch
+        progressRingItem.state = settings.progressRing ? .on : .off
+        progressRingItem.isEnabled = settings.showNotch
+        headphonesBatteryItem.state = settings.headphonesBattery ? .on : .off
+        headphonesBatteryItem.isEnabled = settings.showNotch
         notchSizeItem.isEnabled = settings.showNotch
+        gesturesItem.isEnabled = settings.showNotch
+        for (item, keyPath) in gestureItems {
+            item.state = settings[keyPath: keyPath] ? .on : .off
+        }
+        // Reversing a gesture that is off means nothing.
+        gestureItems[2].0.isEnabled = settings.swipeToSkip
+        gestureItems[3].0.isEnabled = settings.scrollForVolume
         // Always shown: greyed out while this is the latest version.
         if let release = updates.available {
             let version = release.tag.hasPrefix("v") ? String(release.tag.dropFirst()) : release.tag
@@ -250,11 +280,91 @@ final class HeadphonesMenu {
         }
     }
 
+    private func sliderMenuItem<Content: View>(width: CGFloat = MenuMetrics.width + 40,
+                                               _ content: @escaping () -> Content) -> NSMenuItem {
+        let item = hostingMenuItem(width: width, content)
+        sliderRowBuilders[ObjectIdentifier(item)] = {
+            let fresh = hostingMenuItem(width: width, content)
+            let view = fresh.view
+            fresh.view = nil
+            return view
+        }
+        return item
+    }
+
+    private func rebuildSliderRows(in menu: NSMenu) {
+        for item in menu.items {
+            if let build = sliderRowBuilders[ObjectIdentifier(item)], let view = build() { item.view = view }
+        }
+    }
+
+    // Options › Glow: the artwork-coloured glow behind the player and its size. Like Notch Size, the notch opens
+    // as a preview while the submenu is open.
+    private func makeGlowItem() -> NSMenuItem {
+        let glowMenu = NSMenu()
+        glowMenu.autoenablesItems = false
+        notchSizeMenuDelegate.settings = settings
+        notchSizeMenuDelegate.willOpen = { [weak self] menu in self?.rebuildSliderRows(in: menu) }
+        glowMenu.delegate = notchSizeMenuDelegate
+        artworkGlowItem = ActionMenuItem(tr("Artwork Glow")) { [weak settings] in settings?.artworkGlow.toggle() }
+        glowMenu.addItem(artworkGlowItem)
+        glowMenu.addItem(sliderMenuItem { [settings] in
+            NotchSizeRow(settings: settings, title: tr("Glow Size"), keyPath: \.glowSize,
+                         range: AppSettings.glowSizeRange, format: { "\(Int(($0 * 100).rounded())) %" })
+        })
+        glowMenu.addItem(.separator())
+        glowMenu.addItem(ActionMenuItem(tr("Reset Size")) { [weak settings] in settings?.glowSize = 1 })
+        glowItem.title = tr("Glow")
+        glowItem.submenu = glowMenu
+        return glowItem
+    }
+
+    // Options › Notch Gestures: turn the swipe and scroll gestures on or off, or reverse them.
+    private func makeGesturesItem() -> NSMenuItem {
+        let gesturesMenu = NSMenu()
+        gesturesMenu.autoenablesItems = false
+        let rows: [(String, ReferenceWritableKeyPath<AppSettings, Bool>)] = [
+            (tr("Swipe to Change Track"), \.swipeToSkip),
+            (tr("Scroll to Change Volume"), \.scrollForVolume),
+            (tr("Reverse Swipe Direction"), \.reverseSwipe),
+            (tr("Reverse Scroll Direction"), \.reverseScroll),
+            (tr("When the Notch Opens"), \.hapticOnOpen),
+            (tr("On Buttons"), \.hapticOnButtons),
+            (tr("When Changing Track"), \.hapticOnSkip),
+            (tr("On Volume Steps"), \.hapticOnVolume),
+        ]
+        for (title, keyPath) in rows {
+            if keyPath == \.reverseSwipe { gesturesMenu.addItem(.separator()) }
+            if keyPath == \.hapticOnOpen {
+                gesturesMenu.addItem(.separator())
+                gesturesMenu.addItem(Self.submenuHeader(tr("Haptic Feedback")))
+            }
+            let item = ActionMenuItem(title) { [weak settings] in settings?[keyPath: keyPath].toggle() }
+            gestureItems.append((item, keyPath))
+            gesturesMenu.addItem(item)
+        }
+        gesturesMenu.addItem(sliderMenuItem(width: MenuMetrics.width) { [settings] in HapticStrengthRow(settings: settings) })
+        gesturesMenuDelegate.previewsNotch = false
+        gesturesMenuDelegate.willOpen = { [weak self] menu in self?.rebuildSliderRows(in: menu) }
+        gesturesMenu.delegate = gesturesMenuDelegate
+        gesturesItem.title = tr("Notch Gestures")
+        gesturesItem.submenu = gesturesMenu
+        return gesturesItem
+    }
+
+    private static func submenuHeader(_ title: String) -> NSMenuItem {
+        if #available(macOS 14.0, *) { return .sectionHeader(title: title) }
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        return item
+    }
+
     // Options › Notch Size: sliders applied live, the notch staying open as a preview while the submenu is open.
     private func makeNotchSizeItem() -> NSMenuItem {
         let sizeMenu = NSMenu()
         sizeMenu.autoenablesItems = false
         notchSizeMenuDelegate.settings = settings
+        notchSizeMenuDelegate.willOpen = { [weak self] menu in self?.rebuildSliderRows(in: menu) }
         sizeMenu.delegate = notchSizeMenuDelegate
         let points: (Double) -> String = { String(Int($0.rounded())) }
         let percent: (Double) -> String = { "\(Int(($0 * 100).rounded())) %" }
@@ -266,7 +376,7 @@ final class HeadphonesMenu {
             (tr("Text Size"), \.notchZoom, NotchLayout.zoomRange, percent),
         ]
         for (title, keyPath, range, format) in rows {
-            sizeMenu.addItem(hostingMenuItem(width: MenuMetrics.width + 40) {
+            sizeMenu.addItem(sliderMenuItem { [settings] in
                 NotchSizeRow(settings: settings, title: title, keyPath: keyPath, range: range, format: format)
             })
         }
@@ -317,7 +427,15 @@ final class HeadphonesMenu {
 // Opens the notch as a live preview while the Notch Size submenu is open.
 private final class NotchSizeMenuDelegate: NSObject, NSMenuDelegate {
     weak var settings: AppSettings?
+    var previewsNotch = true
+    var willOpen: ((NSMenu) -> Void)?
 
-    func menuWillOpen(_ menu: NSMenu) { settings?.notchPreviewing = true }
-    func menuDidClose(_ menu: NSMenu) { settings?.notchPreviewing = false }
+    func menuWillOpen(_ menu: NSMenu) {
+        willOpen?(menu)
+        if previewsNotch { settings?.notchPreviewing = true }
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        if previewsNotch { settings?.notchPreviewing = false }
+    }
 }

@@ -9,6 +9,12 @@ enum PlaybackClock {
         return max(0, position)
     }
 
+    // 0...1 through the track; 0 when its length isn't known.
+    static func progress(of track: NowPlaying, at date: Date) -> Double {
+        guard track.duration > 0 else { return 0 }
+        return min(1, position(of: track, at: date) / track.duration)
+    }
+
     // "1:05", "12:34", "1:02:03".
     static func format(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds.rounded(.down)))

@@ -67,18 +67,38 @@ English and French.
 
 Move the pointer over the notch and it opens into a player with:
 
-- the artwork, title and artist
+- the artwork, title and artist (click the artwork to bring Spotify to the front)
 - a progress bar you can click or drag
 - previous, play/pause and next
 - a volume button for Spotify's volume
 - a headphones button to change the sound mode without opening the menu
 
-When the notch is closed, it shows the album artwork and little bars that move with the music. Hover the bars
-to skip to the next track, or to resume the music when it's paused.
+Behind the player, a soft glow takes the colour of the artwork.
 
-To change its size, open the menu and go to SonyNotch Options › Notch Size. You can set the width and height,
-the size of the closed notch, the artwork and the text. You see the result live and it's saved. To hide the
-notch, turn off Show Notch in the same menu.
+When the notch is closed, it shows the album artwork, circled by a ring that fills up as the track plays, and
+little bars that move with the music. Hover the bars to skip to the next track, or to resume the music when it's
+paused. When the track changes, the artwork flips over, backwards when you go to the previous track.
+
+When the music is paused or stopped, the closed notch shows the headphones' battery instead, as a ring with the
+percentage, orange when low, red when almost empty and green while charging. Without music, the sound mode
+shows on the other side.
+
+With the pointer over the notch, you can also use the trackpad:
+
+- swipe right with two fingers for the next track, left for the previous one
+- scroll up or down to change Spotify's volume, the volume bar shows up while you do
+
+The trackpad gives a light tap when the notch opens, when you press a button, skip a track or pass every ten
+percent of volume.
+
+Everything can be adjusted in SonyNotch Options:
+
+- Notch Size: width and height, the size of the closed notch, the artwork and the text, with a live preview
+- Notch Gestures: turn each gesture and each kind of tap on or off, reverse the gestures and set how strong
+  the taps are
+- Glow: turn the glow off or change its size, with a live preview
+- Progress Ring and Headphones Battery: show or hide them on the closed notch
+- Show Notch: turn the notch off completely
 
 The player works with the Spotify app for Mac, without any account or login. On a screen without a notch, it
 shows up as a black pill at the top of the screen.

@@ -13,6 +13,19 @@ final class AppSettings: ObservableObject {
         static let notchSide = "notchSideWidth"
         static let notchZoom = "notchZoom"
         static let notchArtwork = "notchRestingArtwork"
+        static let swipeToSkip = "gestureSwipeToSkip"
+        static let scrollForVolume = "gestureScrollForVolume"
+        static let reverseSwipe = "gestureReverseSwipe"
+        static let reverseScroll = "gestureReverseScroll"
+        static let artworkGlow = "artworkGlow"
+        static let progressRing = "progressRing"
+        static let headphonesBattery = "headphonesBattery"
+        static let glowSize = "glowSize"
+        static let hapticOnOpen = "hapticOnOpen"
+        static let hapticOnButtons = "hapticOnButtons"
+        static let hapticOnSkip = "hapticOnSkip"
+        static let hapticOnVolume = "hapticOnVolume"
+        static let hapticStrength = "hapticStrength"
     }
 
     private let defaults: UserDefaults
@@ -34,6 +47,29 @@ final class AppSettings: ObservableObject {
     @Published var notchSideWidth: Double { didSet { defaults.set(notchSideWidth, forKey: Keys.notchSide) } }
     @Published var notchZoom: Double { didSet { defaults.set(notchZoom, forKey: Keys.notchZoom) } }
     @Published var notchArtwork: Double { didSet { defaults.set(notchArtwork, forKey: Keys.notchArtwork) } }
+    // Options › Notch Gestures.
+    @Published var swipeToSkip: Bool { didSet { defaults.set(swipeToSkip, forKey: Keys.swipeToSkip) } }
+    @Published var scrollForVolume: Bool { didSet { defaults.set(scrollForVolume, forKey: Keys.scrollForVolume) } }
+    @Published var reverseSwipe: Bool { didSet { defaults.set(reverseSwipe, forKey: Keys.reverseSwipe) } }
+    @Published var reverseScroll: Bool { didSet { defaults.set(reverseScroll, forKey: Keys.reverseScroll) } }
+    @Published var artworkGlow: Bool { didSet { defaults.set(artworkGlow, forKey: Keys.artworkGlow) } }
+    @Published var progressRing: Bool { didSet { defaults.set(progressRing, forKey: Keys.progressRing) } }
+    @Published var headphonesBattery: Bool { didSet { defaults.set(headphonesBattery, forKey: Keys.headphonesBattery) } }
+    @Published var glowSize: Double { didSet { defaults.set(glowSize, forKey: Keys.glowSize) } }
+    static let glowSizeRange: ClosedRange<CGFloat> = 0.5...1.75  // times the default glow size
+    @Published var hapticOnOpen: Bool { didSet { defaults.set(hapticOnOpen, forKey: Keys.hapticOnOpen) } }
+    @Published var hapticOnButtons: Bool { didSet { defaults.set(hapticOnButtons, forKey: Keys.hapticOnButtons) } }
+    @Published var hapticOnSkip: Bool { didSet { defaults.set(hapticOnSkip, forKey: Keys.hapticOnSkip) } }
+    @Published var hapticOnVolume: Bool { didSet { defaults.set(hapticOnVolume, forKey: Keys.hapticOnVolume) } }
+
+    var anyHaptics: Bool { hapticOnOpen || hapticOnButtons || hapticOnSkip || hapticOnVolume }
+    @Published var hapticStrength: Int { didSet { defaults.set(hapticStrength, forKey: Keys.hapticStrength) } }
+
+    var gesturePreferences: NotchGesturePreferences {
+        NotchGesturePreferences(swipeToSkip: swipeToSkip, scrollForVolume: scrollForVolume,
+                                reverseSwipe: reverseSwipe, reverseScroll: reverseScroll)
+    }
+
     // True while the Notch Size submenu is open: the notch stays open as a live preview. Not persisted.
     @Published var notchPreviewing = false
 
@@ -58,6 +94,9 @@ final class AppSettings: ObservableObject {
             Keys.notchWidth: Double(layout.openSize.width), Keys.notchHeight: Double(layout.openSize.height),
             Keys.notchSide: Double(layout.sideExtension), Keys.notchZoom: Double(layout.zoom),
             Keys.notchArtwork: Double(layout.restingArtwork),
+            Keys.swipeToSkip: true, Keys.scrollForVolume: true, Keys.reverseSwipe: false, Keys.reverseScroll: false,
+            Keys.artworkGlow: true, Keys.progressRing: true, Keys.headphonesBattery: true, Keys.glowSize: 1.0, Keys.hapticOnOpen: true, Keys.hapticOnButtons: true, Keys.hapticOnSkip: true, Keys.hapticOnVolume: true,
+            Keys.hapticStrength: 2,
         ])
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
         autoReconnect = defaults.bool(forKey: Keys.autoReconnect)
@@ -67,6 +106,20 @@ final class AppSettings: ObservableObject {
         notchSideWidth = defaults.double(forKey: Keys.notchSide)
         notchZoom = defaults.double(forKey: Keys.notchZoom)
         notchArtwork = defaults.double(forKey: Keys.notchArtwork)
+        swipeToSkip = defaults.bool(forKey: Keys.swipeToSkip)
+        scrollForVolume = defaults.bool(forKey: Keys.scrollForVolume)
+        reverseSwipe = defaults.bool(forKey: Keys.reverseSwipe)
+        reverseScroll = defaults.bool(forKey: Keys.reverseScroll)
+        artworkGlow = defaults.bool(forKey: Keys.artworkGlow)
+        progressRing = defaults.bool(forKey: Keys.progressRing)
+        headphonesBattery = defaults.bool(forKey: Keys.headphonesBattery)
+        glowSize = defaults.double(forKey: Keys.glowSize)
+        hapticOnOpen = defaults.bool(forKey: Keys.hapticOnOpen)
+        hapticOnButtons = defaults.bool(forKey: Keys.hapticOnButtons)
+        hapticOnSkip = defaults.bool(forKey: Keys.hapticOnSkip)
+        hapticOnVolume = defaults.bool(forKey: Keys.hapticOnVolume)
+        hapticStrength = min(NotchHaptics.strengthRange.upperBound,
+                             max(NotchHaptics.strengthRange.lowerBound, defaults.integer(forKey: Keys.hapticStrength)))
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 
@@ -80,7 +133,8 @@ final class AppSettings: ObservableObject {
             .appendingPathComponent("Library/Containers/\(bundleID)/Data/Library/Preferences/\(bundleID).plist")
         guard let old = NSDictionary(contentsOf: container) as? [String: Any] else { return }
         let keys = [Keys.autoConnect, Keys.autoReconnect, Keys.lastDeviceAddress, Keys.showNotch, Keys.notchWidth,
-                    Keys.notchHeight, Keys.notchSide, Keys.notchZoom, Keys.notchArtwork]
+                    Keys.notchHeight, Keys.notchSide, Keys.notchZoom, Keys.notchArtwork, Keys.swipeToSkip,
+                    Keys.scrollForVolume, Keys.reverseSwipe, Keys.reverseScroll]
         for key in keys where defaults.object(forKey: key) == nil {
             if let value = old[key] { defaults.set(value, forKey: key) }
         }
