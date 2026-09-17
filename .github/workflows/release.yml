@@ -1,0 +1,45 @@
+name: Release
+
+# Push a version tag to publish a release:
+#   git tag v1.0.0 && git push origin v1.0.0
+# The app gets its version from the tag, is tested and built for Apple Silicon and Intel, and the zip is attached
+# to a GitHub release with its SHA-256 (used by the Homebrew cask).
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set the app version from the tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" Client/macos/info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.run_number }}" Client/macos/info.plist
+
+      - name: Test
+        run: make test
+
+      - name: Build (release, universal)
+        run: make release
+
+      - name: Checksum
+        run: |
+          cd build
+          shasum -a 256 SonyNotch.zip | tee SonyNotch.zip.sha256
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/SonyNotch.zip build/SonyNotch.zip.sha256 \
+            --title "SonyNotch $VERSION" \
+            --generate-notes

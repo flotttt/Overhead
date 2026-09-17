@@ -7,7 +7,7 @@ struct HeaderRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(model.deviceName.isEmpty ? "SonyBridge" : model.deviceName)
+                Text(model.deviceName.isEmpty ? "SonyNotch" : model.deviceName)
                     .font(.system(size: 13, weight: .semibold))
                 Text(statusLine)
                     .font(.system(size: 11))

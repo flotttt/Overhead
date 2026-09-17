@@ -16,7 +16,7 @@
 	</array>
 	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
 	<array>
-		<string>/Library/Logs/SonyBridge/</string>
+		<string>/Library/Logs/SonyNotch/</string>
 	</array>
 </dict>
 </plist>

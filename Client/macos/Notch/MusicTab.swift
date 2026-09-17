@@ -25,7 +25,7 @@ struct MusicTab: View {
         case .notRunning:
             message(tr("Spotify isn't open"), button: tr("Open Spotify")) { music.launchPlayer() }
         case .permissionDenied:
-            message(tr("SonyBridge isn't allowed to control Spotify."), button: tr("Open Settings")) {
+            message(tr("SonyNotch isn't allowed to control Spotify."), button: tr("Open Settings")) {
                 music.openAutomationSettings()
             }
         case .ready:

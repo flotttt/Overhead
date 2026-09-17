@@ -10,15 +10,15 @@
 		<string>fr</string>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>SonyBridge</string>
+	<string>SonyNotch</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.semvis123.SonyHeadphonesClient</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>SonyBridge</string>
+	<string>SonyNotch</string>
 	<key>CFBundleDisplayName</key>
-	<string>SonyBridge</string>
+	<string>SonyNotch</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -38,7 +38,7 @@
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>This app uses Bluetooth in order to connect to your headphones.</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>SonyBridge shows and controls the music playing in Spotify.</string>
+	<string>SonyNotch shows and controls the music playing in Spotify.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

@@ -1,4 +1,4 @@
-/* SonyBridge — French UI strings. Keys are the English source strings; missing keys fall back to English. */
+/* SonyNotch — French UI strings. Keys are the English source strings; missing keys fall back to English. */
 
 /* Menu */
 "Ambient Sound Control" = "Contrôle du son ambiant";
@@ -8,7 +8,7 @@
 "Connect…" = "Connecter…";
 "Connecting…" = "Connexion…";
 "Disconnect" = "Déconnecter";
-"Quit SonyBridge" = "Quitter SonyBridge";
+"Quit SonyNotch" = "Quitter SonyNotch";
 "%ld%%" = "%ld %%";
 "Not connected" = "Non connecté";
 "Connected" = "Connecté";
@@ -44,7 +44,7 @@
 "Codec" = "Codec";
 "Protocol" = "Protocole";
 "Bluetooth" = "Bluetooth";
-"SonyBridge Options" = "Options de SonyBridge";
+"SonyNotch Options" = "Options de SonyNotch";
 "Launch at Login" = "Lancer à l’ouverture de session";
 "Connect Automatically" = "Connexion automatique";
 "Reconnect Automatically" = "Reconnexion automatique";
@@ -64,7 +64,7 @@
 "Level" = "Niveau";
 "Spotify isn't open" = "Spotify n’est pas ouvert";
 "Open Spotify" = "Ouvrir Spotify";
-"SonyBridge isn't allowed to control Spotify." = "SonyBridge n’a pas l’autorisation de contrôler Spotify.";
+"SonyNotch isn't allowed to control Spotify." = "SonyNotch n’a pas l’autorisation de contrôler Spotify.";
 "Open Settings" = "Ouvrir les réglages";
 "Nothing playing" = "Rien en cours de lecture";
 "Previous track" = "Morceau précédent";
