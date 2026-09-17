@@ -123,6 +123,9 @@ do {
     let off = NotchGesturePreferences(swipeToSkip: false, scrollForVolume: false, reverseSwipe: false, reverseScroll: false)
     check(NotchScrollAction.nextTrack.applying(off) == nil && NotchScrollAction.volume(3).applying(off) == nil,
           "disabled gestures do nothing")
+    check(!VolumeDetent.crossed(from: 41, to: 49) && VolumeDetent.crossed(from: 49, to: 50), "detent every 10 %")
+    check(VolumeDetent.crossed(from: 52, to: 48) && !VolumeDetent.crossed(from: 50, to: 50), "detent going down")
+    check(VolumeDetent.crossed(from: 3, to: 0) && VolumeDetent.crossed(from: 97, to: 100), "detents at the ends")
     var wheel = NotchScrollGesture()
     check(wheel.handle(sample(0, 1, .none, natural: false, precise: false)) == .volume(5), "mouse wheel up: +5 %")
     check(wheel.handle(sample(0, -2, .none, natural: false, precise: false)) == .volume(-5), "mouse wheel down: -5 %")

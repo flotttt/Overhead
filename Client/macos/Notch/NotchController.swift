@@ -91,6 +91,20 @@ final class NotchController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.sizeChanged(showOpen: false) }
             .store(in: &cancellables)
+        Publishers.CombineLatest4(settings.$hapticOnOpen, settings.$hapticOnButtons, settings.$hapticOnSkip,
+                                  settings.$hapticOnVolume)
+            .sink { open, buttons, skip, volume in
+                var events = Set<NotchHaptics.Event>()
+                if open { events.insert(.notchOpens) }
+                if buttons { events.insert(.buttonPress) }
+                if skip { events.insert(.trackSkip) }
+                if volume { events.insert(.volumeDetent) }
+                NotchHaptics.enabledEvents = events
+            }
+            .store(in: &cancellables)
+        settings.$hapticStrength
+            .sink { NotchHaptics.strength = $0 }
+            .store(in: &cancellables)
         settings.$notchPreviewing
             .dropFirst()
             .receive(on: DispatchQueue.main)
@@ -229,6 +243,7 @@ final class NotchController {
         panel.ignoresMouseEvents = false
         panel.orderFrontRegardless()
         withAnimation(NotchMotion.open) { state.isOpen = true }
+        if !previewing { NotchHaptics.tap(.notchOpens) }
         music.notchDidOpen()
     }
 
@@ -272,8 +287,12 @@ final class NotchController {
                                   precise: event.hasPreciseScrollingDeltas,
                                   inverted: event.isDirectionInvertedFromDevice, phase: phase)
         switch scrollGesture.handle(sample)?.applying(settings.gesturePreferences) {
-        case .nextTrack?: music.next()
-        case .previousTrack?: music.previous()
+        case .nextTrack?:
+            NotchHaptics.tap(.trackSkip)
+            music.next()
+        case .previousTrack?:
+            NotchHaptics.tap(.trackSkip)
+            music.previous()
         case .volume(let change)?: changeVolume(by: change)
         case nil: break
         }
@@ -282,6 +301,7 @@ final class NotchController {
     private func changeVolume(by change: Int) {
         guard let base = gestureVolume ?? music.nowPlaying?.volume else { return }
         let volume = min(100, max(0, base + change))
+        if VolumeDetent.crossed(from: base, to: volume) { NotchHaptics.tap(.volumeDetent) }
         gestureVolume = volume
         state.scrolledVolume = volume
         music.setVolume(volume, final: false)

@@ -269,16 +269,32 @@ final class HeadphonesMenu {
             (tr("Scroll to Change Volume"), \.scrollForVolume),
             (tr("Reverse Swipe Direction"), \.reverseSwipe),
             (tr("Reverse Scroll Direction"), \.reverseScroll),
+            (tr("When the Notch Opens"), \.hapticOnOpen),
+            (tr("On Buttons"), \.hapticOnButtons),
+            (tr("When Changing Track"), \.hapticOnSkip),
+            (tr("On Volume Steps"), \.hapticOnVolume),
         ]
         for (title, keyPath) in rows {
+            if keyPath == \.reverseSwipe { gesturesMenu.addItem(.separator()) }
+            if keyPath == \.hapticOnOpen {
+                gesturesMenu.addItem(.separator())
+                gesturesMenu.addItem(Self.submenuHeader(tr("Haptic Feedback")))
+            }
             let item = ActionMenuItem(title) { [weak settings] in settings?[keyPath: keyPath].toggle() }
             gestureItems.append((item, keyPath))
             gesturesMenu.addItem(item)
-            if keyPath == \.scrollForVolume { gesturesMenu.addItem(.separator()) }
         }
+        gesturesMenu.addItem(hostingMenuItem { HapticStrengthRow(settings: settings) })
         gesturesItem.title = tr("Notch Gestures")
         gesturesItem.submenu = gesturesMenu
         return gesturesItem
+    }
+
+    private static func submenuHeader(_ title: String) -> NSMenuItem {
+        if #available(macOS 14.0, *) { return .sectionHeader(title: title) }
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        return item
     }
 
     // Options › Notch Size: sliders applied live, the notch staying open as a preview while the submenu is open.

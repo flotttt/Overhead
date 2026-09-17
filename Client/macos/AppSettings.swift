@@ -17,6 +17,11 @@ final class AppSettings: ObservableObject {
         static let scrollForVolume = "gestureScrollForVolume"
         static let reverseSwipe = "gestureReverseSwipe"
         static let reverseScroll = "gestureReverseScroll"
+        static let hapticOnOpen = "hapticOnOpen"
+        static let hapticOnButtons = "hapticOnButtons"
+        static let hapticOnSkip = "hapticOnSkip"
+        static let hapticOnVolume = "hapticOnVolume"
+        static let hapticStrength = "hapticStrength"
     }
 
     private let defaults: UserDefaults
@@ -43,6 +48,13 @@ final class AppSettings: ObservableObject {
     @Published var scrollForVolume: Bool { didSet { defaults.set(scrollForVolume, forKey: Keys.scrollForVolume) } }
     @Published var reverseSwipe: Bool { didSet { defaults.set(reverseSwipe, forKey: Keys.reverseSwipe) } }
     @Published var reverseScroll: Bool { didSet { defaults.set(reverseScroll, forKey: Keys.reverseScroll) } }
+    @Published var hapticOnOpen: Bool { didSet { defaults.set(hapticOnOpen, forKey: Keys.hapticOnOpen) } }
+    @Published var hapticOnButtons: Bool { didSet { defaults.set(hapticOnButtons, forKey: Keys.hapticOnButtons) } }
+    @Published var hapticOnSkip: Bool { didSet { defaults.set(hapticOnSkip, forKey: Keys.hapticOnSkip) } }
+    @Published var hapticOnVolume: Bool { didSet { defaults.set(hapticOnVolume, forKey: Keys.hapticOnVolume) } }
+
+    var anyHaptics: Bool { hapticOnOpen || hapticOnButtons || hapticOnSkip || hapticOnVolume }
+    @Published var hapticStrength: Int { didSet { defaults.set(hapticStrength, forKey: Keys.hapticStrength) } }
 
     var gesturePreferences: NotchGesturePreferences {
         NotchGesturePreferences(swipeToSkip: swipeToSkip, scrollForVolume: scrollForVolume,
@@ -74,6 +86,8 @@ final class AppSettings: ObservableObject {
             Keys.notchSide: Double(layout.sideExtension), Keys.notchZoom: Double(layout.zoom),
             Keys.notchArtwork: Double(layout.restingArtwork),
             Keys.swipeToSkip: true, Keys.scrollForVolume: true, Keys.reverseSwipe: false, Keys.reverseScroll: false,
+            Keys.hapticOnOpen: true, Keys.hapticOnButtons: true, Keys.hapticOnSkip: true, Keys.hapticOnVolume: true,
+            Keys.hapticStrength: 2,
         ])
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
         autoReconnect = defaults.bool(forKey: Keys.autoReconnect)
@@ -87,6 +101,12 @@ final class AppSettings: ObservableObject {
         scrollForVolume = defaults.bool(forKey: Keys.scrollForVolume)
         reverseSwipe = defaults.bool(forKey: Keys.reverseSwipe)
         reverseScroll = defaults.bool(forKey: Keys.reverseScroll)
+        hapticOnOpen = defaults.bool(forKey: Keys.hapticOnOpen)
+        hapticOnButtons = defaults.bool(forKey: Keys.hapticOnButtons)
+        hapticOnSkip = defaults.bool(forKey: Keys.hapticOnSkip)
+        hapticOnVolume = defaults.bool(forKey: Keys.hapticOnVolume)
+        hapticStrength = min(NotchHaptics.strengthRange.upperBound,
+                             max(NotchHaptics.strengthRange.lowerBound, defaults.integer(forKey: Keys.hapticStrength)))
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 

@@ -41,13 +41,16 @@ struct FadeScale: ViewModifier {
     }
 }
 
-// Buttons shrink a little while pressed, and spring back.
+// Buttons shrink a little while pressed, spring back, and tap the trackpad.
 struct PressableButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed && !NotchMotion.reduceMotion ? 0.84 : 1)
             .opacity(configuration.isPressed ? 0.7 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { pressed in
+                if pressed { NotchHaptics.tap(.buttonPress) }
+            }
     }
 }
 

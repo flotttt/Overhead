@@ -104,3 +104,11 @@ extension NotchScrollAction {
         }
     }
 }
+
+// Scrolling the volume taps the trackpad at every ten percent, like a notched wheel.
+enum VolumeDetent {
+    static func crossed(from old: Int, to new: Int) -> Bool {
+        guard old != new else { return false }
+        return old / 10 != new / 10 || new == 0 || new == 100
+    }
+}

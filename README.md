@@ -82,7 +82,9 @@ With the pointer over the notch, you can also use the trackpad:
 - swipe right with two fingers for the next track, left for the previous one
 - scroll up or down to change Spotify's volume, the volume bar shows up while you do
 
-You can turn these gestures off or reverse their direction in SonyNotch Options › Notch Gestures.
+The trackpad gives a light tap when the notch opens, when you press a button, skip a track or pass every ten
+percent of volume. In SonyNotch Options › Notch Gestures you can turn each gesture and each kind of tap on or off, reverse the
+gestures' direction and set how strong the taps are.
 
 To change its size, open the menu and go to SonyNotch Options › Notch Size. You can set the width and height,
 the size of the closed notch, the artwork and the text. You see the result live and it's saved. To hide the

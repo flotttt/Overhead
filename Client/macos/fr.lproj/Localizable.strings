@@ -91,3 +91,12 @@
 "Scroll to Change Volume" = "Défiler pour régler le volume";
 "Reverse Swipe Direction" = "Inverser le sens du balayage";
 "Reverse Scroll Direction" = "Inverser le sens du défilement";
+"Haptic Feedback" = "Retour haptique";
+"Strength" = "Intensité";
+"Light" = "Léger";
+"Medium" = "Moyen";
+"Strong" = "Fort";
+"When the Notch Opens" = "À l’ouverture de l’encoche";
+"On Buttons" = "Sur les boutons";
+"When Changing Track" = "En changeant de morceau";
+"On Volume Steps" = "Sur les crans du volume";
