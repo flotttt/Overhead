@@ -58,3 +58,7 @@
 "Not supported on this device." = "Non pris en charge sur cet appareil.";
 "The headphones didn't respond." = "Le casque n’a pas répondu.";
 "Couldn't open the control channel." = "Impossible d’ouvrir le canal de contrôle.";
+
+/* Notch (Notch/*.swift) */
+"Music" = "Musique";
+"Headphones" = "Casque";

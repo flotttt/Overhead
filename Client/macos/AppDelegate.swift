@@ -7,11 +7,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let music = MusicController()
     private let deviceWatcher = DeviceWatcher()
     private var statusItemController: StatusItemController?
+    private var notchController: NotchController?
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         model.settings = settings
         statusItemController = StatusItemController(model: model, settings: settings)
+        notchController = NotchController(model: model, music: music, settings: settings)
 
         // Spotify is only read while the notch is on (notch spec §4.3). $showNotch emits the current value first.
         settings.$showNotch
