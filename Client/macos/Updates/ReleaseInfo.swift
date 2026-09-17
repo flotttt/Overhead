@@ -32,17 +32,26 @@ struct LatestRelease: Equatable {
     let version: AppVersion
     let tag: String
     let pageURL: URL
+    let appZipURL: URL?    // SonyNotch.zip, nil if the release doesn't have it (then only the page can be opened)
+    let checksumURL: URL?  // SonyNotch.zip.sha256
 }
 
 // Reads GitHub's "latest release" reply and decides whether it's an update for this app.
 enum ReleaseInfo {
     static let latestURL = URL(string: "https://api.github.com/repos/flotttt/SonyNotch/releases/latest")!
+    static let appZipName = "SonyNotch.zip"
 
     private struct Reply: Decodable {
+        struct Asset: Decodable {
+            let name: String
+            let browser_download_url: URL
+        }
+
         let tag_name: String
         let html_url: URL
         let draft: Bool?
         let prerelease: Bool?
+        let assets: [Asset]?
     }
 
     // nil for drafts, pre-releases and anything unreadable.
@@ -50,7 +59,18 @@ enum ReleaseInfo {
         guard let reply = try? JSONDecoder().decode(Reply.self, from: json),
               reply.draft != true, reply.prerelease != true,
               let version = AppVersion(reply.tag_name) else { return nil }
-        return LatestRelease(version: version, tag: reply.tag_name, pageURL: reply.html_url)
+        let assets = reply.assets ?? []
+        func asset(_ name: String) -> URL? { assets.first { $0.name == name }?.browser_download_url }
+        return LatestRelease(version: version, tag: reply.tag_name, pageURL: reply.html_url,
+                             appZipURL: asset(appZipName), checksumURL: asset(appZipName + ".sha256"))
+    }
+
+    // The hash in a `shasum -a 256` output ("<64 hex>  SonyNotch.zip"), lowercased; nil if there isn't one.
+    static func checksum(fromFile text: String) -> String? {
+        guard let first = text.split(whereSeparator: { $0 == " " || $0 == "\n" }).first else { return nil }
+        let hash = first.lowercased()
+        guard hash.count == 64, hash.allSatisfy({ $0.isHexDigit }) else { return nil }
+        return hash
     }
 
     // The release, only when it's newer than the running app (whose version must be readable).
