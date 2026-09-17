@@ -36,10 +36,15 @@ jobs:
           cd build
           shasum -a 256 SonyNotch.zip | tee SonyNotch.zip.sha256
 
+      # A release already made by hand for this tag (title and notes written on GitHub) only gets the files.
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" build/SonyNotch.zip build/SonyNotch.zip.sha256 \
-            --title "SonyNotch $VERSION" \
-            --generate-notes
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" build/SonyNotch.zip build/SonyNotch.zip.sha256 --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" build/SonyNotch.zip build/SonyNotch.zip.sha256 \
+              --title "SonyNotch $VERSION" \
+              --generate-notes
+          fi
