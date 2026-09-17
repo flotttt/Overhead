@@ -167,7 +167,7 @@ final class HeadphonesMenu {
         autoConnectItem = ActionMenuItem(tr("Connect Automatically")) { [weak settings] in settings?.autoConnect.toggle() }
         autoReconnectItem = ActionMenuItem(tr("Reconnect Automatically")) { [weak settings] in settings?.autoReconnect.toggle() }
         showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
-        for item in [launchAtLoginItem, autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
+        for item in [autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
         optionsMenu.addItem(makeNotchSizeItem())
         let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
         optionsItem.submenu = optionsMenu
@@ -175,7 +175,8 @@ final class HeadphonesMenu {
         connectItem = ActionMenuItem(tr("Connect…")) { [weak self] in self?.toggleConnection() }
         menu.addItem(connectItem)
         menu.addItem(.separator())
-        updateItem = ActionMenuItem("") { [weak updates] in updates?.openReleasePage() }
+        menu.addItem(launchAtLoginItem)
+        updateItem = ActionMenuItem("") { [weak updates] in updates?.install() }
         menu.addItem(updateItem)
         menu.addItem(ActionMenuItem(tr("Quit SonyNotch"), key: "q") { NSApp.terminate(nil) })
     }
@@ -234,9 +235,18 @@ final class HeadphonesMenu {
         autoReconnectItem.state = settings.autoReconnect ? .on : .off
         showNotchItem.state = settings.showNotch ? .on : .off
         notchSizeItem.isEnabled = settings.showNotch
-        updateItem.isHidden = updates.available == nil
+        // Always shown: greyed out while this is the latest version.
         if let release = updates.available {
-            updateItem.title = String(format: tr("Update Available: SonyNotch %@…"), release.tag.hasPrefix("v") ? String(release.tag.dropFirst()) : release.tag)
+            let version = release.tag.hasPrefix("v") ? String(release.tag.dropFirst()) : release.tag
+            switch updates.state {
+            case .idle: updateItem.title = String(format: tr("Update to SonyNotch %@"), version)
+            case .installing: updateItem.title = tr("Updating SonyNotch…")
+            case .failed: updateItem.title = String(format: tr("Update Failed, Download SonyNotch %@…"), version)
+            }
+            updateItem.isEnabled = updates.state != .installing
+        } else {
+            updateItem.title = String(format: tr("SonyNotch Is Up to Date (%@)"), updates.currentVersion)
+            updateItem.isEnabled = false
         }
     }
 

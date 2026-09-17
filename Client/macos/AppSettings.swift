@@ -50,6 +50,7 @@ final class AppSettings: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        Self.importSandboxedSettings(into: defaults)
         // Spec §4: auto-connect and auto-reconnect default on; launch at login stays off until the user asks.
         // Notch spec §7: the notch is shown by default.
         let layout = NotchLayout.default
@@ -68,6 +69,22 @@ final class AppSettings: ObservableObject {
         notchZoom = defaults.double(forKey: Keys.notchZoom)
         notchArtwork = defaults.double(forKey: Keys.notchArtwork)
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    // Up to 1.1.0 the app was sandboxed and kept its settings in its container. The first unsandboxed launch
+    // copies them over, without overwriting anything already set.
+    private static func importSandboxedSettings(into defaults: UserDefaults) {
+        let doneKey = "importedSandboxedSettings"
+        guard !defaults.bool(forKey: doneKey), let bundleID = Bundle.main.bundleIdentifier else { return }
+        defaults.set(true, forKey: doneKey)
+        let container = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Containers/\(bundleID)/Data/Library/Preferences/\(bundleID).plist")
+        guard let old = NSDictionary(contentsOf: container) as? [String: Any] else { return }
+        let keys = [Keys.autoConnect, Keys.autoReconnect, Keys.lastDeviceAddress, Keys.showNotch, Keys.notchWidth,
+                    Keys.notchHeight, Keys.notchSide, Keys.notchZoom, Keys.notchArtwork]
+        for key in keys where defaults.object(forKey: key) == nil {
+            if let value = old[key] { defaults.set(value, forKey: key) }
+        }
     }
 
     func resetNotchSize() {

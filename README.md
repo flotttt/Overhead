@@ -35,15 +35,15 @@ Works on macOS 13 or later, on Apple Silicon and Intel Macs.
 
 ## Update
 
-SonyNotch checks once a day for a new version. When one is out, an Update Available item shows up in its menu.
+SonyNotch checks once a day for a new version. When one is out, click **Update to SonyNotch** in its menu: it
+downloads the new version, replaces itself and restarts. When you're up to date, the item is greyed out. Your
+settings are kept, but macOS may ask for the Bluetooth and Spotify permissions again.
 
-With Homebrew, run `brew upgrade --cask sonynotch`. Without Homebrew, click Update Available to open the
-download page, then replace the app in Applications as when you installed it. Your settings are kept, but
-macOS may ask for the Bluetooth and Spotify permissions again.
+With Homebrew you can also run `brew upgrade --cask sonynotch`.
 
 ## Uninstall
 
-If you turned on Launch at Login, turn it off first. Then run `brew uninstall --cask sonynotch`, or quit
+If you turned on Launch at Login in the menu, turn it off first. Then run `brew uninstall --cask sonynotch`, or quit
 SonyNotch and move it to the Trash.
 
 ## What it does
@@ -134,17 +134,6 @@ binary inside the bundle, or macOS closes it when it first uses Bluetooth.
 
 The app is written in Swift with AppKit and SwiftUI, on top of a C++ core for the headphones protocol. The code
 is in `Client/`, and the notch is in `Client/macos/Notch` and `Client/macos/Music`.
-
-### Publish a release
-
-Push a version tag. GitHub Actions runs the tests, builds the app with that version number, attaches
-SonyNotch.zip to the release and updates the Homebrew cask in
-[flotttt/homebrew-tap](https://github.com/flotttt/homebrew-tap).
-
-```sh
-git tag v1.1.0
-git push origin v1.1.0
-```
 
 ### How it talks to the headphones
 

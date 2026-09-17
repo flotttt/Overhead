@@ -45,7 +45,7 @@
 "Protocol" = "Protocole";
 "Bluetooth" = "Bluetooth";
 "SonyNotch Options" = "Options de SonyNotch";
-"Launch at Login" = "Lancer à l’ouverture de session";
+"Launch at Login" = "Lancer au démarrage";
 "Connect Automatically" = "Connexion automatique";
 "Reconnect Automatically" = "Reconnexion automatique";
 "Show Notch" = "Afficher l’encoche";
@@ -82,4 +82,7 @@
 "Text Size" = "Taille du texte";
 "Reset Size" = "Réinitialiser";
 "Closed Artwork" = "Pochette (fermée)";
-"Update Available: SonyNotch %@…" = "Mise à jour disponible : SonyNotch %@…";
+"Update to SonyNotch %@" = "Mettre à jour vers SonyNotch %@";
+"Updating SonyNotch…" = "Mise à jour de SonyNotch…";
+"Update Failed, Download SonyNotch %@…" = "Échec de la mise à jour, télécharger SonyNotch %@…";
+"SonyNotch Is Up to Date (%@)" = "SonyNotch est à jour (%@)";

@@ -125,11 +125,26 @@ do {
 
     let json = """
         {"tag_name": "v1.1.0", "html_url": "https://github.com/flotttt/SonyNotch/releases/tag/v1.1.0",
-         "draft": false, "prerelease": false, "name": "SonyNotch 1.1.0"}
+         "draft": false, "prerelease": false, "name": "SonyNotch 1.1.0",
+         "assets": [
+           {"name": "SonyNotch.zip.sha256", "browser_download_url": "https://github.com/flotttt/SonyNotch/releases/download/v1.1.0/SonyNotch.zip.sha256"},
+           {"name": "SonyNotch.zip", "browser_download_url": "https://github.com/flotttt/SonyNotch/releases/download/v1.1.0/SonyNotch.zip"}
+         ]}
         """
     let latest = ReleaseInfo.parse(json: Data(json.utf8))
     check(latest?.version == AppVersion("1.1.0") && latest?.tag == "v1.1.0", "release parsed")
     check(latest?.pageURL == URL(string: "https://github.com/flotttt/SonyNotch/releases/tag/v1.1.0"), "release page")
+    check(latest?.appZipURL == URL(string: "https://github.com/flotttt/SonyNotch/releases/download/v1.1.0/SonyNotch.zip"),
+          "app zip asset")
+    check(latest?.checksumURL?.lastPathComponent == "SonyNotch.zip.sha256", "checksum asset")
+    let noAssets = json.replacingOccurrences(of: "SonyNotch.zip", with: "Other.zip")
+    let withoutZip = ReleaseInfo.parse(json: Data(noAssets.utf8))
+    check(withoutZip != nil && withoutZip?.appZipURL == nil && withoutZip?.checksumURL == nil,
+          "release without the app zip: still an update, not installable")
+    let hash = "46e1ca5c5edf50a61338cde32ddc2b34ed447a42afc79452cf0d3afa41a53299"
+    check(ReleaseInfo.checksum(fromFile: "\(hash)  SonyNotch.zip\n") == hash, "checksum file read")
+    check(ReleaseInfo.checksum(fromFile: hash.uppercased()) == hash, "checksum lowercased")
+    check(ReleaseInfo.checksum(fromFile: "not a hash  SonyNotch.zip") == nil, "invalid checksum file")
     check(ReleaseInfo.update(currentVersion: "1.0.0", latest: latest) == latest, "older app: update available")
     check(ReleaseInfo.update(currentVersion: "1.1.0", latest: latest) == nil, "same version: no update")
     check(ReleaseInfo.update(currentVersion: "1.2.0", latest: latest) == nil, "newer app: no update")
