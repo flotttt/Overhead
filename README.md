@@ -67,7 +67,7 @@ English and French.
 
 Move the pointer over the notch and it opens into a player with:
 
-- the artwork, title and artist
+- the artwork, title and artist (click the artwork to bring Spotify to the front)
 - a progress bar you can click or drag
 - previous, play/pause and next
 - a volume button for Spotify's volume

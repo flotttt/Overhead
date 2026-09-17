@@ -77,9 +77,14 @@ struct MusicTab: View {
     private func player(_ track: NowPlaying, artwork: CGFloat) -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 12 * s) {
-                ArtworkView(image: music.artwork, trackID: track.trackID,
-                            isBackward: { [music] in music.trackChangeIsBackward },
-                            size: artwork, cornerRadius: artwork * 0.2)
+                // Brings Spotify to the front (opening the track's link could restart it).
+                Button { music.launchPlayer() } label: {
+                    ArtworkView(image: music.artwork, trackID: track.trackID,
+                                isBackward: { [music] in music.trackChangeIsBackward },
+                                size: artwork, cornerRadius: artwork * 0.2)
+                }
+                .buttonStyle(PressableButtonStyle())
+                .accessibilityLabel(tr("Open Spotify"))
                 VStack(alignment: .leading, spacing: 2 * s) {
                     Text(track.title).font(.system(size: 14 * s, weight: .semibold)).foregroundColor(.white)
                     Text(track.artist).font(.system(size: 13 * s)).foregroundColor(.gray)
