@@ -1,6 +1,6 @@
 import Foundation
 
-// AppleScript sent to the local Spotify app (spec §6). Only ever run on SpotifyLocalSource's script queue.
+// AppleScript sent to the local Spotify app. Only ever run on SpotifyLocalSource's script queue.
 enum SpotifyScript {
     enum Result: Equatable {
         case success(String)

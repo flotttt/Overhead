@@ -1,6 +1,6 @@
 import Foundation
 
-// What the notch shows while resting (spec §4.1) and which tab it opens on. Pure logic, tested in LogicTests.
+// What the notch shows while resting and which tab it opens on. Pure logic, tested in LogicTests.
 enum NotchRestingState: Equatable {
     case musicAndHeadphones  // 1: artwork left, headphones mode right
     case musicOnly           // 2: artwork left, level bars right

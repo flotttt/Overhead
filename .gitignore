@@ -527,5 +527,5 @@ MigrationBackup/
 # vscode
 .vscode/
 
-# brainstorming mockups (superpowers visual companion)
+# local working notes
 .superpowers/

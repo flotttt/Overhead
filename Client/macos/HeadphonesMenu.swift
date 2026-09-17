@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 
-// The status item's menu (spec §4). Built once; update() refreshes states, visibility and values in place,
+// The status item's menu. Built once; update() refreshes states, visibility and values in place,
 // including while the menu is open.
 final class HeadphonesMenu {
     let menu = NSMenu()
@@ -48,8 +48,8 @@ final class HeadphonesMenu {
     }
 
     // Same options, but with a short last label - used for the value shown at the right of "Auto Power-Off"
-    // itself, since the full "Quand le casque est retiré" collides with the title (spec §4 shows a short
-    // value; the submenu keeps the long label).
+    // itself, since the full "Quand le casque est retiré" collides with the title (the submenu keeps the long
+    // label).
     private static var autoPowerOffShortOptions: [String] {
         var options = autoPowerOffOptions
         options[options.count - 1] = tr("Taken off")

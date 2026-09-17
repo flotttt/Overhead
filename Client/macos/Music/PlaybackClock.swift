@@ -1,6 +1,6 @@
 import Foundation
 
-// Live playback position and its display, from the last known position (spec §6.1).
+// Live playback position and its display, from the last known position.
 enum PlaybackClock {
     static func position(of track: NowPlaying, at date: Date) -> TimeInterval {
         var position = track.position

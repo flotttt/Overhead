@@ -2,7 +2,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-// Owns the notch panel (spec §4.3): picks the screen, places the panel, opens it on hover and follows the
+// Owns the notch panel: picks the screen, places the panel, opens it on hover and follows the
 // "Show Notch" option.
 //
 // The panel always keeps the largest open size the Notch Size options allow: only the SwiftUI shape inside

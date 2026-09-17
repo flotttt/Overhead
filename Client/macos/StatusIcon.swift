@@ -1,6 +1,6 @@
 import AppKit
 
-// Menu bar icon: one monochrome SF Symbol per mode, dimmed when disconnected (spec §6.6).
+// Menu bar icon: one monochrome SF Symbol per mode, dimmed when disconnected.
 enum StatusIcon {
     static func symbolName(for mode: SHCAmbientMode) -> String {
         switch mode {

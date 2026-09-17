@@ -47,7 +47,7 @@ struct NotchShape: Shape {
     }
 }
 
-// Root view of the notch panel (spec §4): the resting strip, or the open panel (player or headphones page). The panel
+// Root view of the notch panel: the resting strip, or the open panel (player or headphones page). The panel
 // can be larger than the shape while it animates; the shape stays centred at the top.
 struct NotchView: View {
     static let openFlare: CGFloat = 10
@@ -90,7 +90,7 @@ struct NotchView: View {
         .environment(\.colorScheme, .dark)
     }
 
-    // MARK: - Resting (spec §4.1)
+    // MARK: - Resting
 
     private var restingContent: some View {
         HStack(spacing: 0) {
@@ -133,7 +133,7 @@ struct NotchView: View {
         }
     }
 
-    // MARK: - Open (spec §4.2)
+    // MARK: - Open
 
     private var openContent: some View {
         // Both pages stay in the hierarchy (switching is then a cross-slide, not an insertion), the hidden one

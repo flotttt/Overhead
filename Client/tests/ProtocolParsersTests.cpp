@@ -40,7 +40,7 @@ int main()
 	CHECK(!parseNcAsmState(bytes({ 0x57, 0x17, 0x01, 0x01, 0x01, 0x00, 0x0a })).has_value());   // wrong opcode
 
 	// --- Equalizer ---
-	// WH-1000XM6: unknown preset 0x30, 10 bands (offset +10 hypothesis, spec §7).
+	// WH-1000XM6: unknown preset 0x30, 10 bands (offset +10 hypothesis).
 	{
 		auto e = parseEqualizer(bytes({ 0x57, 0x00, 0x30, 0x0a, 0x0a, 0x0a, 0x05, 0x05, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06 }));
 		CHECK(e && e->preset == 0x30 && !e->hasClearBass && e->bands.size() == 10);

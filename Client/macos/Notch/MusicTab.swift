@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Notch player page (spec §4.2): artwork, title and artist; progress; headphones, previous, play/pause, next,
+// Notch player page: artwork, title and artist; progress; headphones, previous, play/pause, next,
 // volume. The volume button swaps the progress bar for Spotify's volume bar for a few seconds. Sizes follow
 // the notch zoom; extra height grows the artwork.
 struct MusicTab: View {
