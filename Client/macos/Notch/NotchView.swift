@@ -6,6 +6,7 @@ final class NotchViewState: ObservableObject {
     @Published var isOpen = false
     @Published var openContentMounted = false  // true while open, and while the closing animation plays
     @Published var trailingHovered = false     // pointer over the resting music control
+    @Published var scrolledVolume: Int?         // Spotify volume being set by scrolling over the notch
     @Published var resting: NotchRestingState = .empty
     @Published var tab: NotchTab = .music
     @Published var restingSize: CGSize = .zero
@@ -142,7 +143,9 @@ struct NotchView: View {
         // Both pages stay in the hierarchy (switching is then a cross-slide, not an insertion), the hidden one
         // neither drawn, clickable nor read by VoiceOver.
         ZStack(alignment: .top) {
-            page(.music) { MusicTab(music: music, showHeadphones: { selectTab(.headphones) }) }
+            page(.music) {
+                MusicTab(music: music, scrolledVolume: state.scrolledVolume, showHeadphones: { selectTab(.headphones) })
+            }
             page(.headphones) { HeadphonesTab(model: model, back: { selectTab(.music) }) }
         }
         .padding(.top, 8 * state.contentScale)

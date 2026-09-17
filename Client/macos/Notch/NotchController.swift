@@ -22,6 +22,9 @@ final class NotchController {
     private var geometry: NotchGeometry?
     private var lastChosenTab: NotchTab?
     private var pointerInside = false
+    private var scrollGesture = NotchScrollGesture()
+    private var gestureVolume: Int?  // volume being set by scrolling, sent for good once the scrolling stops
+    private var volumeCommitWork: DispatchWorkItem?
     private var previewing = false  // Notch Size submenu open: the pointer neither opens nor closes the notch
     private var reopenWork: DispatchWorkItem?
     private var hoverTimer: Timer?
@@ -53,6 +56,17 @@ final class NotchController {
         }
         if let local = NSEvent.addLocalMonitorForEvents(matching: events, handler: { [weak self] event in
             self?.pointerMoved()
+            return event
+        }) {
+            mouseMonitors.append(local)
+        }
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel, handler: { [weak self] event in
+            self?.scrolled(event)
+        }) {
+            mouseMonitors.append(global)
+        }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel, handler: { [weak self] event in
+            self?.scrolled(event)
             return event
         }) {
             mouseMonitors.append(local)
@@ -231,6 +245,55 @@ final class NotchController {
         }
         unmountWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.unmountDelay, execute: work)
+    }
+
+    // MARK: - Gestures
+
+    // Over the notch (closed, or open on the player): swipe for previous / next, scroll for Spotify's volume.
+    private func scrolled(_ event: NSEvent) {
+        let preferences = settings.gesturePreferences
+        guard preferences.swipeToSkip || preferences.scrollForVolume,
+              panel.isVisible, let geometry = geometry, music.status == .ready, music.hasMusic,
+              !state.isOpen || state.tab == .music else { return }
+        let zone = state.isOpen ? geometry.open : (geometry.restingFrame(for: state.resting) ?? .zero)
+        guard zone.contains(NSEvent.mouseLocation) else { return }
+
+        let phase: ScrollSample.Phase
+        if !event.momentumPhase.isEmpty {
+            phase = .momentum
+        } else if event.phase.contains(.began) || event.phase.contains(.mayBegin) {
+            phase = .began
+        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
+            phase = .ended
+        } else {
+            phase = event.phase.isEmpty ? .none : .changed
+        }
+        let sample = ScrollSample(deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY,
+                                  precise: event.hasPreciseScrollingDeltas,
+                                  inverted: event.isDirectionInvertedFromDevice, phase: phase)
+        switch scrollGesture.handle(sample)?.applying(settings.gesturePreferences) {
+        case .nextTrack?: music.next()
+        case .previousTrack?: music.previous()
+        case .volume(let change)?: changeVolume(by: change)
+        case nil: break
+        }
+    }
+
+    private func changeVolume(by change: Int) {
+        guard let base = gestureVolume ?? music.nowPlaying?.volume else { return }
+        let volume = min(100, max(0, base + change))
+        gestureVolume = volume
+        state.scrolledVolume = volume
+        music.setVolume(volume, final: false)
+        volumeCommitWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self, let volume = self.gestureVolume else { return }
+            self.gestureVolume = nil
+            self.music.setVolume(volume, final: true)
+            self.state.scrolledVolume = nil
+        }
+        volumeCommitWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: work)
     }
 
     // The Notch Size submenu opens the notch as a live preview; closing the menu hands it back to the pointer.

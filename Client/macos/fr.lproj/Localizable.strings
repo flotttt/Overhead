@@ -86,3 +86,8 @@
 "Updating SonyNotch…" = "Mise à jour de SonyNotch…";
 "Update Failed, Download SonyNotch %@…" = "Échec de la mise à jour, télécharger SonyNotch %@…";
 "SonyNotch Is Up to Date (%@)" = "SonyNotch est à jour (%@)";
+"Notch Gestures" = "Gestes de l’encoche";
+"Swipe to Change Track" = "Balayer pour changer de morceau";
+"Scroll to Change Volume" = "Défiler pour régler le volume";
+"Reverse Swipe Direction" = "Inverser le sens du balayage";
+"Reverse Scroll Direction" = "Inverser le sens du défilement";

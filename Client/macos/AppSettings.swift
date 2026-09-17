@@ -13,6 +13,10 @@ final class AppSettings: ObservableObject {
         static let notchSide = "notchSideWidth"
         static let notchZoom = "notchZoom"
         static let notchArtwork = "notchRestingArtwork"
+        static let swipeToSkip = "gestureSwipeToSkip"
+        static let scrollForVolume = "gestureScrollForVolume"
+        static let reverseSwipe = "gestureReverseSwipe"
+        static let reverseScroll = "gestureReverseScroll"
     }
 
     private let defaults: UserDefaults
@@ -34,6 +38,17 @@ final class AppSettings: ObservableObject {
     @Published var notchSideWidth: Double { didSet { defaults.set(notchSideWidth, forKey: Keys.notchSide) } }
     @Published var notchZoom: Double { didSet { defaults.set(notchZoom, forKey: Keys.notchZoom) } }
     @Published var notchArtwork: Double { didSet { defaults.set(notchArtwork, forKey: Keys.notchArtwork) } }
+    // Options › Notch Gestures.
+    @Published var swipeToSkip: Bool { didSet { defaults.set(swipeToSkip, forKey: Keys.swipeToSkip) } }
+    @Published var scrollForVolume: Bool { didSet { defaults.set(scrollForVolume, forKey: Keys.scrollForVolume) } }
+    @Published var reverseSwipe: Bool { didSet { defaults.set(reverseSwipe, forKey: Keys.reverseSwipe) } }
+    @Published var reverseScroll: Bool { didSet { defaults.set(reverseScroll, forKey: Keys.reverseScroll) } }
+
+    var gesturePreferences: NotchGesturePreferences {
+        NotchGesturePreferences(swipeToSkip: swipeToSkip, scrollForVolume: scrollForVolume,
+                                reverseSwipe: reverseSwipe, reverseScroll: reverseScroll)
+    }
+
     // True while the Notch Size submenu is open: the notch stays open as a live preview. Not persisted.
     @Published var notchPreviewing = false
 
@@ -58,6 +73,7 @@ final class AppSettings: ObservableObject {
             Keys.notchWidth: Double(layout.openSize.width), Keys.notchHeight: Double(layout.openSize.height),
             Keys.notchSide: Double(layout.sideExtension), Keys.notchZoom: Double(layout.zoom),
             Keys.notchArtwork: Double(layout.restingArtwork),
+            Keys.swipeToSkip: true, Keys.scrollForVolume: true, Keys.reverseSwipe: false, Keys.reverseScroll: false,
         ])
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
         autoReconnect = defaults.bool(forKey: Keys.autoReconnect)
@@ -67,6 +83,10 @@ final class AppSettings: ObservableObject {
         notchSideWidth = defaults.double(forKey: Keys.notchSide)
         notchZoom = defaults.double(forKey: Keys.notchZoom)
         notchArtwork = defaults.double(forKey: Keys.notchArtwork)
+        swipeToSkip = defaults.bool(forKey: Keys.swipeToSkip)
+        scrollForVolume = defaults.bool(forKey: Keys.scrollForVolume)
+        reverseSwipe = defaults.bool(forKey: Keys.reverseSwipe)
+        reverseScroll = defaults.bool(forKey: Keys.reverseScroll)
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 
@@ -80,7 +100,8 @@ final class AppSettings: ObservableObject {
             .appendingPathComponent("Library/Containers/\(bundleID)/Data/Library/Preferences/\(bundleID).plist")
         guard let old = NSDictionary(contentsOf: container) as? [String: Any] else { return }
         let keys = [Keys.autoConnect, Keys.autoReconnect, Keys.lastDeviceAddress, Keys.showNotch, Keys.notchWidth,
-                    Keys.notchHeight, Keys.notchSide, Keys.notchZoom, Keys.notchArtwork]
+                    Keys.notchHeight, Keys.notchSide, Keys.notchZoom, Keys.notchArtwork, Keys.swipeToSkip,
+                    Keys.scrollForVolume, Keys.reverseSwipe, Keys.reverseScroll]
         for key in keys where defaults.object(forKey: key) == nil {
             if let value = old[key] { defaults.set(value, forKey: key) }
         }

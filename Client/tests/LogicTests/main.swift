@@ -85,6 +85,49 @@ do {
     check(geometry.restingTrailingZone == CGRect(x: 850, y: 950, width: 60, height: 32), "custom trailing zone")
 }
 
+// NotchScrollGesture: two-finger swipes skip tracks, vertical scrolling sets the volume.
+do {
+    func sample(_ dx: CGFloat, _ dy: CGFloat, _ phase: ScrollSample.Phase, natural: Bool = true,
+                precise: Bool = true) -> ScrollSample {
+        ScrollSample(deltaX: dx, deltaY: dy, precise: precise, inverted: natural, phase: phase)
+    }
+    // Natural scrolling: fingers moving left give a negative deltaX.
+    var swipe = NotchScrollGesture()
+    check(swipe.handle(sample(-10, 0, .began)) == nil, "swipe starts")
+    check(swipe.handle(sample(-30, 1, .changed)) == nil, "not far enough yet")
+    check(swipe.handle(sample(-30, 0, .changed)) == .previousTrack, "fingers left: previous track")
+    check(swipe.handle(sample(-80, 0, .changed)) == nil, "one skip per swipe")
+    check(swipe.handle(sample(0, 0, .ended)) == nil, "swipe ends")
+    check(swipe.handle(sample(-5, 0, .momentum)) == nil, "momentum ignored")
+    check(swipe.handle(sample(20, 0, .began)) == nil && swipe.handle(sample(50, 0, .changed)) == .nextTrack,
+          "fingers right: next track")
+    var classic = NotchScrollGesture()
+    _ = classic.handle(sample(10, 0, .began, natural: false))
+    check(classic.handle(sample(60, 0, .changed, natural: false)) == .previousTrack,
+          "without natural scrolling the deltas are the other way round")
+
+    // Vertical: 1 % per 6 pt, fingers up raise the volume (natural scrolling: negative deltaY).
+    var volume = NotchScrollGesture()
+    check(volume.handle(sample(0, -10, .began)) == .volume(1), "fingers up: louder")
+    check(volume.handle(sample(0, -20, .changed)) == .volume(4), "remainder carried over (4 pt + 20 pt)")
+    check(volume.handle(sample(30, -2, .changed)) == nil, "axis locked: sideways drift doesn't skip")
+    check(volume.handle(sample(0, 12, .changed)) == .volume(-1), "fingers down: quieter (2 pt left over, 12 pt down)")
+    check(volume.handle(sample(0, -30, .momentum)) == nil, "no volume from momentum")
+    let defaults = NotchGesturePreferences()
+    check(NotchScrollAction.nextTrack.applying(defaults) == .nextTrack && NotchScrollAction.volume(3).applying(defaults) == .volume(3),
+          "default preferences keep the action")
+    let reversed = NotchGesturePreferences(swipeToSkip: true, scrollForVolume: true, reverseSwipe: true, reverseScroll: true)
+    check(NotchScrollAction.nextTrack.applying(reversed) == .previousTrack, "reversed swipe")
+    check(NotchScrollAction.previousTrack.applying(reversed) == .nextTrack, "reversed swipe, other way")
+    check(NotchScrollAction.volume(3).applying(reversed) == .volume(-3), "reversed scroll")
+    let off = NotchGesturePreferences(swipeToSkip: false, scrollForVolume: false, reverseSwipe: false, reverseScroll: false)
+    check(NotchScrollAction.nextTrack.applying(off) == nil && NotchScrollAction.volume(3).applying(off) == nil,
+          "disabled gestures do nothing")
+    var wheel = NotchScrollGesture()
+    check(wheel.handle(sample(0, 1, .none, natural: false, precise: false)) == .volume(5), "mouse wheel up: +5 %")
+    check(wheel.handle(sample(0, -2, .none, natural: false, precise: false)) == .volume(-5), "mouse wheel down: -5 %")
+}
+
 // NotchGeometry: an external screen without a notch, right of the primary screen.
 do {
     let frame = CGRect(x: 1512, y: 0, width: 2560, height: 1440)

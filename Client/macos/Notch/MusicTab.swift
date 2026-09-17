@@ -8,6 +8,7 @@ struct MusicTab: View {
 
     @ObservedObject var music: MusicController
     let showHeadphones: () -> Void
+    let scrolledVolume: Int?  // volume being set by scrolling over the notch
     @Environment(\.notchScale) private var s
     @State private var seekValue: Double?    // while dragging the progress bar
     @State private var volumeValue: Double?  // while dragging the volume bar
@@ -15,25 +16,34 @@ struct MusicTab: View {
     @State private var volumeHideWork: DispatchWorkItem?
 
     // Explicit: the private @State properties would otherwise make the memberwise init private.
-    init(music: MusicController, showHeadphones: @escaping () -> Void) {
+    init(music: MusicController, scrolledVolume: Int?, showHeadphones: @escaping () -> Void) {
         _music = ObservedObject(wrappedValue: music)
+        self.scrolledVolume = scrolledVolume
         self.showHeadphones = showHeadphones
     }
 
     var body: some View {
-        switch music.status {
-        case .notRunning:
-            message(tr("Spotify isn't open"), button: tr("Open Spotify")) { music.launchPlayer() }
-        case .permissionDenied:
-            message(tr("SonyNotch isn't allowed to control Spotify."), button: tr("Open Settings")) {
-                music.openAutomationSettings()
+        Group {
+            switch music.status {
+            case .notRunning:
+                message(tr("Spotify isn't open"), button: tr("Open Spotify")) { music.launchPlayer() }
+            case .permissionDenied:
+                message(tr("SonyNotch isn't allowed to control Spotify."), button: tr("Open Settings")) {
+                    music.openAutomationSettings()
+                }
+            case .ready:
+                if let track = music.nowPlaying {
+                    player(track)
+                } else {
+                    message(tr("Nothing playing"), button: nil) {}
+                }
             }
-        case .ready:
-            if let track = music.nowPlaying {
-                player(track)
-            } else {
-                message(tr("Nothing playing"), button: nil) {}
-            }
+        }
+        // Scrolling the volume over the notch shows the volume bar, which folds back like after the button.
+        .onChange(of: scrolledVolume) { volume in
+            guard volume != nil else { return }
+            if !showVolume { withAnimation(NotchMotion.content) { showVolume = true } }
+            scheduleVolumeHide()
         }
     }
 
@@ -130,7 +140,7 @@ struct MusicTab: View {
     private func volume(_ track: NowPlaying) -> some View {
         HStack(spacing: 8 * s) {
             Image(systemName: "speaker.fill").font(.system(size: 10 * s)).foregroundColor(.gray).frame(width: 34 * s)
-            FlatSlider(value: volumeValue ?? Double(track.volume ?? 0), range: 0...100) { value, final in
+            FlatSlider(value: volumeValue ?? Double(scrolledVolume ?? track.volume ?? 0), range: 0...100) { value, final in
                 volumeValue = final ? nil : value
                 music.setVolume(Int(value.rounded()), final: final)
                 scheduleVolumeHide()

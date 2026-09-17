@@ -74,7 +74,15 @@ Move the pointer over the notch and it opens into a player with:
 - a headphones button to change the sound mode without opening the menu
 
 When the notch is closed, it shows the album artwork and little bars that move with the music. Hover the bars
-to skip to the next track, or to resume the music when it's paused.
+to skip to the next track, or to resume the music when it's paused. When the track changes, the artwork flips
+over, backwards when you go to the previous track.
+
+With the pointer over the notch, you can also use the trackpad:
+
+- swipe right with two fingers for the next track, left for the previous one
+- scroll up or down to change Spotify's volume, the volume bar shows up while you do
+
+You can turn these gestures off or reverse their direction in SonyNotch Options › Notch Gestures.
 
 To change its size, open the menu and go to SonyNotch Options › Notch Size. You can set the width and height,
 the size of the closed notch, the artwork and the text. You see the result live and it's saved. To hide the

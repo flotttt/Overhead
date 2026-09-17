@@ -33,6 +33,8 @@ final class HeadphonesMenu {
     private var showNotchItem = NSMenuItem()
     private let notchSizeItem = NSMenuItem()
     private var updateItem = NSMenuItem()
+    private let gesturesItem = NSMenuItem()
+    private var gestureItems: [(NSMenuItem, ReferenceWritableKeyPath<AppSettings, Bool>)] = []
     private let notchSizeMenuDelegate = NotchSizeMenuDelegate()
 
     private static var presets: [(Int, String)] {
@@ -169,6 +171,7 @@ final class HeadphonesMenu {
         showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
         for item in [autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
         optionsMenu.addItem(makeNotchSizeItem())
+        optionsMenu.addItem(makeGesturesItem())
         let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
         optionsItem.submenu = optionsMenu
         menu.addItem(optionsItem)
@@ -235,6 +238,13 @@ final class HeadphonesMenu {
         autoReconnectItem.state = settings.autoReconnect ? .on : .off
         showNotchItem.state = settings.showNotch ? .on : .off
         notchSizeItem.isEnabled = settings.showNotch
+        gesturesItem.isEnabled = settings.showNotch
+        for (item, keyPath) in gestureItems {
+            item.state = settings[keyPath: keyPath] ? .on : .off
+        }
+        // Reversing a gesture that is off means nothing.
+        gestureItems[2].0.isEnabled = settings.swipeToSkip
+        gestureItems[3].0.isEnabled = settings.scrollForVolume
         // Always shown: greyed out while this is the latest version.
         if let release = updates.available {
             let version = release.tag.hasPrefix("v") ? String(release.tag.dropFirst()) : release.tag
@@ -248,6 +258,27 @@ final class HeadphonesMenu {
             updateItem.title = String(format: tr("SonyNotch Is Up to Date (%@)"), updates.currentVersion)
             updateItem.isEnabled = false
         }
+    }
+
+    // Options › Notch Gestures: turn the swipe and scroll gestures on or off, or reverse them.
+    private func makeGesturesItem() -> NSMenuItem {
+        let gesturesMenu = NSMenu()
+        gesturesMenu.autoenablesItems = false
+        let rows: [(String, ReferenceWritableKeyPath<AppSettings, Bool>)] = [
+            (tr("Swipe to Change Track"), \.swipeToSkip),
+            (tr("Scroll to Change Volume"), \.scrollForVolume),
+            (tr("Reverse Swipe Direction"), \.reverseSwipe),
+            (tr("Reverse Scroll Direction"), \.reverseScroll),
+        ]
+        for (title, keyPath) in rows {
+            let item = ActionMenuItem(title) { [weak settings] in settings?[keyPath: keyPath].toggle() }
+            gestureItems.append((item, keyPath))
+            gesturesMenu.addItem(item)
+            if keyPath == \.scrollForVolume { gesturesMenu.addItem(.separator()) }
+        }
+        gesturesItem.title = tr("Notch Gestures")
+        gesturesItem.submenu = gesturesMenu
+        return gesturesItem
     }
 
     // Options › Notch Size: sliders applied live, the notch staying open as a preview while the submenu is open.
