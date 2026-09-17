@@ -16,7 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItemController = StatusItemController(model: model, settings: settings, updates: updates)
         notchController = NotchController(model: model, music: music, settings: settings)
 
-        // Spotify is only read while the notch is on (notch spec §4.3). $showNotch emits the current value first.
+        // Spotify is only read while the notch is on. $showNotch emits the current value first.
         settings.$showNotch
             .receive(on: DispatchQueue.main)
             .sink { [weak self] show in

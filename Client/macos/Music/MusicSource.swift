@@ -6,7 +6,7 @@ enum MusicSourceStatus: Equatable {
     case ready
 }
 
-// Where the music comes from (spec §5.1). Step 1: SpotifyLocalSource; step 2 adds the Spotify Web API.
+// Where the music comes from. Step 1: SpotifyLocalSource; step 2 adds the Spotify Web API.
 // Called on the main thread; onChange is called on the main thread.
 protocol MusicSource: AnyObject {
     var onChange: ((MusicSourceStatus, NowPlaying?) -> Void)? { get set }

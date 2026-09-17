@@ -103,7 +103,7 @@ do {
     check(!partial.hasNotch, "safe area without auxiliary areas: no notch")
 }
 
-// NotchContent: resting state (spec §4.1), tab on opening, hover delays.
+// NotchContent: resting state, tab on opening, hover delays.
 do {
     check(NotchContent.restingState(hasMusic: true, headphonesConnected: true) == .musicAndHeadphones, "state 1")
     check(NotchContent.restingState(hasMusic: true, headphonesConnected: false) == .musicOnly, "state 2")
@@ -179,7 +179,7 @@ do {
     check(PlaybackClock.format(-3) == "0:00", "format never negative")
 }
 
-// SpotifyPlaybackInfo: the PlaybackStateChanged signal (spec §6.1).
+// SpotifyPlaybackInfo: the PlaybackStateChanged signal.
 do {
     let t0 = Date(timeIntervalSince1970: 1_000)
     let signal: [AnyHashable: Any] = [

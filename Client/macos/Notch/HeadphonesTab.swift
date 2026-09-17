@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-// Notch headphones page: NC / Ambient / Off, ambient level and Focus on Voice (spec §4.2). It calls the same
+// Notch headphones page: NC / Ambient / Off, ambient level and Focus on Voice. It calls the same
 // model methods as the menu, so the poll guard and the send throttle apply here too, and both stay in sync.
 struct HeadphonesTab: View {
     @ObservedObject var model: HeadphonesModel

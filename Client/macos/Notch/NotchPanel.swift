@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-// Borderless transparent panel above the menu bar (spec §4.3). It never becomes key or main, so the frontmost
+// Borderless transparent panel above the menu bar. It never becomes key or main, so the frontmost
 // app keeps the keyboard; clicks still reach its controls through NotchHostingView.
 final class NotchPanel: NSPanel {
     // A factory rather than a custom init: NSWindow subclasses that declare their own initializer must also

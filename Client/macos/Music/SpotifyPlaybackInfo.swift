@@ -7,7 +7,7 @@ enum SpotifyState: Equatable {
     case incomplete         // not enough information: read the state through Apple Events instead
 }
 
-// Decodes the local Spotify app's signal and Apple Events replies (spec §6.1). Pure, tested in LogicTests.
+// Decodes the local Spotify app's signal and Apple Events replies. Pure, tested in LogicTests.
 enum SpotifyPlaybackInfo {
     static let localCapabilities = MusicCapabilities(canSeek: true, canSetVolume: true, canChangeDevice: false)
     static let fieldSeparator: Character = "\u{1F}"

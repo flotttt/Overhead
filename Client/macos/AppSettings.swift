@@ -51,8 +51,7 @@ final class AppSettings: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         Self.importSandboxedSettings(into: defaults)
-        // Spec §4: auto-connect and auto-reconnect default on; launch at login stays off until the user asks.
-        // Notch spec §7: the notch is shown by default.
+        // Auto-connect, auto-reconnect and the notch default on; launch at login stays off until the user asks.
         let layout = NotchLayout.default
         defaults.register(defaults: [
             Keys.autoConnect: true, Keys.autoReconnect: true, Keys.showNotch: true,

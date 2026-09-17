@@ -1,6 +1,6 @@
 import AppKit
 
-// Reads and controls the Spotify app of this Mac (spec §6): its PlaybackStateChanged signal, plus Apple Events.
+// Reads and controls the Spotify app of this Mac: its PlaybackStateChanged signal, plus Apple Events.
 // Never sends an Apple Event while Spotify isn't running: one would launch it.
 final class SpotifyLocalSource: MusicSource {
     static let bundleIdentifier = "com.spotify.client"
@@ -167,7 +167,7 @@ final class SpotifyLocalSource: MusicSource {
         }
     }
 
-    // Spec §6.3: a refusal stops the reads (the controller retries once per notch opening); anything else
+    // A refusal stops the reads (the controller retries once per notch opening); anything else
     // (timeout, busy) keeps the last known state until the next signal.
     private func applyFailure(_ code: Int) {
         guard signalObserver != nil else { return }

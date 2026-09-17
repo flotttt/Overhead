@@ -57,7 +57,7 @@ struct NotchLayout: Equatable {
     }
 }
 
-// Where the notch panel goes (spec §4): the real notch, or a simulated pill centred at the top of a screen
+// Where the notch panel goes: the real notch, or a simulated pill centred at the top of a screen
 // without one. Every rect shares the notch's horizontal centre and touches the top edge of the screen.
 struct NotchGeometry: Equatable {
     static let simulatedWidth: CGFloat = 190        // pill width on a screen without a notch

@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 
-// The music state the notch shows, from the active MusicSource (spec §5.1). Step 1: the local Spotify app.
+// The music state the notch shows, from the active MusicSource. Step 1: the local Spotify app.
 final class MusicController: ObservableObject {
     static let openRefreshInterval: TimeInterval = 5  // re-read while the notch is open (volume isn't signalled)
     private static let artworkCacheSize = 8
@@ -37,7 +37,7 @@ final class MusicController: ObservableObject {
         source.start()
     }
 
-    // "Show Notch" off: no Spotify reads at all (spec §4.3).
+    // "Show Notch" off: no Spotify reads at all.
     func stop() {
         guard running else { return }
         running = false
@@ -50,7 +50,7 @@ final class MusicController: ObservableObject {
         log("stopped")
     }
 
-    // Opening reads once (which also retries a refused permission, spec §6.3), then every 5 s while open.
+    // Opening reads once (which also retries a refused permission), then every 5 s while open.
     func notchDidOpen() {
         guard running else { return }
         source.refresh()
