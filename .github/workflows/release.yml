@@ -2,14 +2,16 @@ name: Release
 
 # Publishing a release (on GitHub: Releases › Draft a new release › new tag like 1.2.0 or v1.2.0 › Publish, or
 # `git tag v1.2.0 && git push origin v1.2.0`) creates a version tag, which runs this workflow. The app gets its
-# version from the tag, is tested and built for Apple Silicon and Intel, and the zip is attached to the release
-# with its SHA-256. The Homebrew cask in flotttt/homebrew-tap is then pointed at it (needs the
-# HOMEBREW_TAP_TOKEN secret, skipped without it).
+# version from the tag, is tested and built for Apple Silicon and Intel, and Overhead.zip is attached to the
+# release with its SHA-256, along with SonyNotch.zip: the same app for the updater of SonyNotch 1.4 and older (see
+# the Makefile). The Homebrew cask in flotttt/homebrew-tap is then pointed at it (needs the HOMEBREW_TAP_TOKEN
+# secret, skipped without it).
 #
 # To build a release whose tag didn't run the workflow: Actions › Release › Run workflow, with that tag.
 #
 # The app is signed with the "SonyNotch Code Signing" certificate (SIGNING_CERT_P12 and SIGNING_CERT_PASSWORD
-# secrets), the same for every release, so macOS keeps its Bluetooth and Spotify permissions across updates.
+# secrets), the same for every release, so macOS keeps its Bluetooth and music app permissions across updates. It
+# keeps the app's former name: a new certificate would cost users those permissions.
 
 on:
   push:
@@ -82,11 +84,12 @@ jobs:
         run: make release
 
       - name: Check the signature
-        run: codesign -dr - build/SonyNotch.app 2>&1 | grep -q 'certificate root'
+        run: codesign -dr - build/Overhead.app 2>&1 | grep -q 'certificate root'
 
       - name: Checksum
         run: |
           cd build
+          shasum -a 256 Overhead.zip | tee Overhead.zip.sha256
           shasum -a 256 SonyNotch.zip | tee SonyNotch.zip.sha256
 
       # A release already made on GitHub for this tag (title and notes written there) only gets the files.
@@ -94,11 +97,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          FILES="build/Overhead.zip build/Overhead.zip.sha256 build/SonyNotch.zip build/SonyNotch.zip.sha256"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" build/SonyNotch.zip build/SonyNotch.zip.sha256 --clobber
+            gh release upload "$TAG" $FILES --clobber
           else
-            gh release create "$TAG" build/SonyNotch.zip build/SonyNotch.zip.sha256 \
-              --title "SonyNotch $VERSION" \
+            gh release create "$TAG" $FILES \
+              --title "Overhead $VERSION" \
               --generate-notes
           fi
 
@@ -111,18 +115,18 @@ jobs:
             echo "HOMEBREW_TAP_TOKEN isn't set, the Homebrew cask isn't updated."
             exit 0
           fi
-          FILE=Casks/sonynotch.rb
-          SHA256=$(cut -d ' ' -f 1 build/SonyNotch.zip.sha256)
-          URL="https://github.com/flotttt/SonyNotch/releases/download/$TAG/SonyNotch.zip"
+          FILE=Casks/overhead.rb
+          SHA256=$(cut -d ' ' -f 1 build/Overhead.zip.sha256)
+          URL="https://github.com/flotttt/Overhead/releases/download/$TAG/Overhead.zip"
           gh api "repos/flotttt/homebrew-tap/contents/$FILE" > current.json
-          jq -r .content current.json | base64 -D > sonynotch.rb
+          jq -r .content current.json | base64 -D > overhead.rb
           sed -i '' -E \
             -e "s|^  version \".*\"|  version \"$VERSION\"|" \
             -e "s|^  sha256 \".*\"|  sha256 \"$SHA256\"|" \
             -e "s|^  url \".*\"|  url \"$URL\"|" \
-            sonynotch.rb
+            overhead.rb
           gh api -X PUT "repos/flotttt/homebrew-tap/contents/$FILE" \
-            -f message="sonynotch $VERSION" \
-            -f content="$(base64 -i sonynotch.rb)" \
+            -f message="overhead $VERSION" \
+            -f content="$(base64 -i overhead.rb)" \
             -f sha="$(jq -r .sha current.json)" > /dev/null
           echo "Homebrew cask updated to $VERSION"

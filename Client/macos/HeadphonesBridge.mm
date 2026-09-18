@@ -76,7 +76,7 @@ static NSString *SHCConnectionError(const std::exception &exc) {
     if ((self = [super init])) {
         _bt = std::make_unique<BluetoothWrapper>(std::make_unique<MacOSBluetoothConnector>());
         _generation = std::make_shared<std::atomic<uint64_t>>(0);
-        _cmdQueue = dispatch_queue_create("com.sonynotch.commands", DISPATCH_QUEUE_SERIAL);
+        _cmdQueue = dispatch_queue_create("com.overhead.commands", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }

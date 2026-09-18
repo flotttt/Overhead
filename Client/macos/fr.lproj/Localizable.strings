@@ -1,4 +1,4 @@
-/* SonyNotch — French UI strings. Keys are the English source strings; missing keys fall back to English. */
+/* Overhead — French UI strings. Keys are the English source strings; missing keys fall back to English. */
 
 /* Menu */
 "Ambient Sound Control" = "Contrôle du son ambiant";
@@ -8,7 +8,7 @@
 "Connect…" = "Connecter…";
 "Connecting…" = "Connexion…";
 "Disconnect" = "Déconnecter";
-"Quit SonyNotch" = "Quitter SonyNotch";
+"Quit Overhead" = "Quitter Overhead";
 "%ld%%" = "%ld %%";
 "Not connected" = "Non connecté";
 "Connected" = "Connecté";
@@ -44,7 +44,7 @@
 "Codec" = "Codec";
 "Protocol" = "Protocole";
 "Bluetooth" = "Bluetooth";
-"SonyNotch Options" = "Options de SonyNotch";
+"Overhead Options" = "Options de Overhead";
 "Launch at Login" = "Lancer au démarrage";
 "Connect Automatically" = "Connexion automatique";
 "Reconnect Automatically" = "Reconnexion automatique";
@@ -64,7 +64,7 @@
 "Level" = "Niveau";
 "%@ isn't open" = "%@ n’est pas ouvert";
 "Open %@" = "Ouvrir %@";
-"SonyNotch isn't allowed to control %@." = "SonyNotch n’a pas l’autorisation de contrôler %@.";
+"Overhead isn't allowed to control %@." = "Overhead n’a pas l’autorisation de contrôler %@.";
 "Open Settings" = "Ouvrir les réglages";
 "Nothing playing" = "Rien en cours de lecture";
 "Previous track" = "Morceau précédent";
@@ -82,10 +82,10 @@
 "Text Size" = "Taille du texte";
 "Reset Size" = "Réinitialiser";
 "Closed Artwork" = "Pochette (fermée)";
-"Update to SonyNotch %@" = "Mettre à jour vers SonyNotch %@";
-"Updating SonyNotch…" = "Mise à jour de SonyNotch…";
-"Update Failed, Download SonyNotch %@…" = "Échec de la mise à jour, télécharger SonyNotch %@…";
-"SonyNotch Is Up to Date (%@)" = "SonyNotch est à jour (%@)";
+"Update to Overhead %@" = "Mettre à jour vers Overhead %@";
+"Updating Overhead…" = "Mise à jour de Overhead…";
+"Update Failed, Download Overhead %@…" = "Échec de la mise à jour, télécharger Overhead %@…";
+"Overhead Is Up to Date (%@)" = "Overhead est à jour (%@)";
 "Notch Gestures" = "Gestes de l’encoche";
 "Swipe to Change Track" = "Balayer pour changer de morceau";
 "Scroll to Change Volume" = "Défiler pour régler le volume";
@@ -105,22 +105,22 @@
 "Glow Size" = "Taille";
 "Progress Ring" = "Anneau de progression";
 "Headphones Battery" = "Batterie du casque";
-"SonyNotch Setup" = "Configuration de SonyNotch";
-"Welcome to SonyNotch" = "Bienvenue dans SonyNotch";
+"Overhead Setup" = "Configuration de Overhead";
+"Welcome to Overhead" = "Bienvenue dans Overhead";
 "A few permissions and your headphones, and you're set." = "Quelques autorisations et votre casque, et c’est prêt.";
-"Start SonyNotch when you log in to your Mac." = "Ouvrir SonyNotch au démarrage de votre Mac.";
+"Start Overhead when you log in to your Mac." = "Ouvrir Overhead au démarrage de votre Mac.";
 "Done" = "Terminer";
 "Allow" = "Autoriser";
-"SonyNotch can talk to your headphones." = "SonyNotch peut communiquer avec votre casque.";
-"Bluetooth access was refused. Turn SonyNotch on in Privacy & Security › Bluetooth." = "L’accès au Bluetooth a été refusé. Activez SonyNotch dans Confidentialité et sécurité › Bluetooth.";
+"Overhead can talk to your headphones." = "Overhead peut communiquer avec votre casque.";
+"Bluetooth access was refused. Turn Overhead on in Privacy & Security › Bluetooth." = "L’accès au Bluetooth a été refusé. Activez Overhead dans Confidentialité et sécurité › Bluetooth.";
 "Needed to talk to your headphones." = "Nécessaire pour communiquer avec votre casque.";
 "Connected." = "Connecté.";
 "Pair your Sony headphones in System Settings › Bluetooth, then connect them here." = "Jumelez votre casque Sony dans Réglages Système › Bluetooth, puis connectez-le ici.";
 "Music" = "Musique";
-"For the notch player. Open %@ to allow SonyNotch to control it." = "Pour le lecteur de l’encoche. Ouvrez %@ pour autoriser SonyNotch à le contrôler.";
+"For the notch player. Open %@ to allow Overhead to control it." = "Pour le lecteur de l’encoche. Ouvrez %@ pour autoriser Overhead à le contrôler.";
 "Answer macOS's question: click Allow." = "Répondez à la question de macOS : cliquez sur Autoriser.";
-"SonyNotch can show and control your music." = "SonyNotch peut afficher et contrôler votre musique.";
-"Allow SonyNotch to show and control the music playing in %@." = "Autorisez SonyNotch à afficher et contrôler la musique en cours dans %@.";
+"Overhead can show and control your music." = "Overhead peut afficher et contrôler votre musique.";
+"Allow Overhead to show and control the music playing in %@." = "Autorisez Overhead à afficher et contrôler la musique en cours dans %@.";
 "Optional" = "Facultatif";
 "To do" = "À faire";
 "Setup…" = "Configuration…";
@@ -128,8 +128,8 @@
 "Reconnect" = "Reconnecter";
 "Ask Again" = "Redemander";
 "Control was refused. Ask Again shows macOS's question once more." = "Le contrôle a été refusé. Redemander affiche de nouveau la question de macOS.";
-"You can open this window again with Setup… in the SonyNotch menu." = "Vous pourrez rouvrir cette fenêtre avec Configuration… dans le menu de SonyNotch.";
-"How do you want to use SonyNotch?" = "Comment voulez-vous utiliser SonyNotch ?";
+"You can open this window again with Setup… in the Overhead menu." = "Vous pourrez rouvrir cette fenêtre avec Configuration… dans le menu de Overhead.";
+"How do you want to use Overhead?" = "Comment voulez-vous utiliser Overhead ?";
 "Notch" = "Encoche";
 "Your music in the notch, no headphones needed." = "Votre musique dans l’encoche, sans casque.";
 "Your Sony headphones' settings in the menu bar." = "Les réglages de votre casque Sony dans la barre des menus.";

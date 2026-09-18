@@ -1,8 +1,10 @@
-# SonyNotch
+<p align="center"><img src=".github/logo.png" width="128" height="128" alt="Overhead icon"></p>
+
+# Overhead
 
 Control your Sony headphones from your Mac, right from the menu bar and the notch. No phone app needed.
 
-SonyNotch switches noise cancelling and ambient sound, sets the equalizer and shows the battery of your Sony
+Overhead switches noise cancelling and ambient sound, sets the equalizer and shows the battery of your Sony
 Bluetooth headphones. It also turns the MacBook notch into a small player for the music playing in Spotify,
 Apple Music, and (experimental) Deezer, YouTube Music or your browser.
 
@@ -13,22 +15,22 @@ Apple Music, and (experimental) Deezer, YouTube Music or your browser.
 If you use [Homebrew](https://brew.sh), run:
 
 ```sh
-brew install --cask flotttt/tap/sonynotch
+brew install --cask flotttt/tap/overhead
 ```
 
-That's it. Open SonyNotch from your Applications folder.
+That's it. Open Overhead from your Applications folder.
 
 ### Without Homebrew
 
-1. Download **SonyNotch.zip** from the [latest release](https://github.com/flotttt/SonyNotch/releases/latest)
-2. Open the zip and drag **SonyNotch** into your Applications folder
-3. Open SonyNotch. The first time, macOS says it can't check the app because it isn't signed with an Apple
+1. Download **Overhead.zip** from the [latest release](https://github.com/flotttt/Overhead/releases/latest)
+2. Open the zip and drag **Overhead** into your Applications folder
+3. Open Overhead. The first time, macOS says it can't check the app because it isn't signed with an Apple
    developer account yet. Click Done, then go to System Settings › Privacy & Security, scroll down and click
    **Open Anyway**
 
 ### First launch
 
-SonyNotch appears in the menu bar and opens its setup window. First choose how you want to use it:
+Overhead appears in the menu bar and opens its setup window. First choose how you want to use it:
 
 - **Notch**: your music in the notch, no Sony headphones needed. Bluetooth is never used.
 - **Headphones**: your Sony headphones' settings in the menu bar, without the notch.
@@ -44,17 +46,21 @@ Works on macOS 13 or later, on Apple Silicon and Intel Macs.
 
 ## Update
 
-SonyNotch checks once a day for a new version. When one is out, click **Update to SonyNotch** in its menu: it
+Overhead checks once a day for a new version. When one is out, click **Update to Overhead** in its menu: it
 downloads the new version, replaces itself and restarts. When you're up to date, the item is greyed out. Your
 settings and the Bluetooth and music app permissions are kept. Coming from version 1.2.1 or older, macOS asks for
 the permissions one last time.
 
-With Homebrew you can also run `brew upgrade --cask sonynotch`.
+With Homebrew you can also run `brew upgrade --cask overhead`.
+
+Overhead was called SonyNotch until version 1.4. SonyNotch's update installs Overhead in its place, with your
+settings and permissions: nothing to do. With Homebrew, switch casks once: `brew uninstall --cask sonynotch`, then
+`brew install --cask flotttt/tap/overhead`.
 
 ## Uninstall
 
-If you turned on Launch at Login in the menu, turn it off first. Then run `brew uninstall --cask sonynotch`, or quit
-SonyNotch and move it to the Trash.
+If you turned on Launch at Login in the menu, turn it off first. Then run `brew uninstall --cask overhead`, or quit
+Overhead and move it to the Trash.
 
 ## What it does
 
@@ -68,7 +74,7 @@ Click the headphones icon in the menu bar to:
 - see the battery level, for each earbud and the case on true wireless models
 - see the firmware, codec and Bluetooth address in About the Headphones
 
-The icon shows the current sound mode and follows the NC button on your headphones. SonyNotch connects on its
+The icon shows the current sound mode and follows the NC button on your headphones. Overhead connects on its
 own when the headphones join the Mac, reconnects if the link drops, and can launch at login. It's available in
 English and French.
 
@@ -100,7 +106,7 @@ With the pointer over the notch, you can also use the trackpad:
 The trackpad gives a light tap when the notch opens, when you press a button, skip a track or pass every ten
 percent of volume.
 
-Everything can be adjusted in SonyNotch Options:
+Everything can be adjusted in Overhead Options:
 
 - Notch Size: width and height, the size of the closed notch, the artwork and the text, with a live preview
 - Notch Gestures: turn each gesture and each kind of tap on or off, reverse the gestures and set how strong
@@ -128,7 +134,7 @@ shows up as a black pill at the top of the screen.
 | Earbuds, controls work but battery may not | WF-1000XM4, WF-1000XM5, WF-C700N, LinkBuds S |
 | Older models, sound modes only | WH-1000XM4, WH-1000XM3, WH-1000XM2, WH-XB900N, MDR-XB950BT |
 
-If you try a model that isn't tested, please [open an issue](https://github.com/flotttt/SonyNotch/issues/new)
+If you try a model that isn't tested, please [open an issue](https://github.com/flotttt/Overhead/issues/new)
 and say how it went.
 
 ## Troubleshooting
@@ -137,13 +143,13 @@ and say how it went.
 install steps.
 
 **The headphones aren't found.** Connect them in System Settings › Bluetooth, then click Connect in the
-SonyNotch menu.
+Overhead menu.
 
-**Nothing happens after opening the app.** Check that SonyNotch is allowed in System Settings › Privacy &
+**Nothing happens after opening the app.** Check that Overhead is allowed in System Settings › Privacy &
 Security › Bluetooth.
 
-**The notch says SonyNotch isn't allowed to control Spotify (or Music).** Click Open Settings and turn on the app
-under Automation › SonyNotch.
+**The notch says Overhead isn't allowed to control Spotify (or Music).** Click Open Settings and turn on the app
+under Automation › Overhead.
 
 **The menu bar icon is missing.** When the menu bar is full, macOS hides icons behind the notch. Quit or hide a
 few other menu bar apps.
@@ -158,15 +164,15 @@ on.
 You need Apple's Command Line Tools (`xcode-select --install`). The full Xcode app isn't required.
 
 ```sh
-git clone https://github.com/flotttt/SonyNotch.git
-cd SonyNotch
+git clone https://github.com/flotttt/Overhead.git
+cd Overhead
 make install      # build and install to Applications
 make run          # build and launch, add DEBUG=1 to log the Bluetooth traffic
 make test         # unit tests and translation check
-make release      # universal build zipped in build/SonyNotch.zip
+make release      # universal build zipped in build/Overhead.zip
 ```
 
-Logs go to `~/Library/Logs/SonyNotch/app.log`. Launch the app with `open`, Finder or `make`, not by running the
+Logs go to `~/Library/Logs/Overhead/app.log`. Launch the app with `open`, Finder or `make`, not by running the
 binary inside the bundle, or macOS closes it when it first uses Bluetooth.
 
 The app is written in Swift with AppKit and SwiftUI, on top of a C++ core for the headphones protocol. The code
@@ -180,20 +186,20 @@ Sony headphones expose a Bluetooth serial (RFCOMM) service and accept small bina
 <0x3e> escaped( type, sequence, 4-byte length, payload, checksum ) <0x3c>
 ```
 
-Headphones up to the WH-1000XM4 use a first version of this protocol, newer ones use a second. SonyNotch
+Headphones up to the WH-1000XM4 use a first version of this protocol, newer ones use a second. Overhead
 detects which one when it connects. The byte layouts were checked against the Sony support in
 [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge).
 
-For the notch, Spotify and Music post a system notification on every playback change, and SonyNotch asks the
+For the notch, Spotify and Music post a system notification on every playback change, and Overhead asks the
 app for the details, artwork and volume with AppleScript. Nothing is polled while the notch is closed.
 
 ## Origins
 
-SonyNotch started as a fork of [AmitRajput-Dev/SonyBridge](https://github.com/AmitRajput-Dev/SonyBridge),
+Overhead started as a fork of [AmitRajput-Dev/SonyBridge](https://github.com/AmitRajput-Dev/SonyBridge),
 which builds on [SonyHeadphonesClient](https://github.com/Plutoberth/SonyHeadphonesClient) by Plutoberth,
 semvis123 and their contributors. It has since been renamed and largely rewritten.
 
-SonyNotch isn't affiliated with or endorsed by Sony. It uses a reverse engineered protocol, so use it at your
+Overhead isn't affiliated with or endorsed by Sony. It uses a reverse engineered protocol, so use it at your
 own risk.
 
 ## License

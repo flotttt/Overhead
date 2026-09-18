@@ -29,7 +29,7 @@ struct MusicTab: View {
                 message(String(format: tr("%@ isn't open"), music.playerName),
                         button: String(format: tr("Open %@"), music.playerName)) { music.launchPlayer() }
             case .permissionDenied:
-                message(String(format: tr("SonyNotch isn't allowed to control %@."), music.playerName),
+                message(String(format: tr("Overhead isn't allowed to control %@."), music.playerName),
                         button: tr("Open Settings")) {
                     music.openAutomationSettings()
                 }

@@ -23,7 +23,7 @@ final class ScriptedPlayerSource: MusicSource {
     // Every NSAppleScript of every player is created and run on this one serial queue: NSAppleScript isn't
     // thread-safe, and two scripts running at once can get each other's reply (Music read Spotify's state while
     // it waited on a stuck Music).
-    private static let sharedScriptQueue = DispatchQueue(label: "com.sonynotch.players")
+    private static let sharedScriptQueue = DispatchQueue(label: "com.overhead.players")
     private var scriptQueue: DispatchQueue { Self.sharedScriptQueue }
     private var readScript: NSAppleScript?     // scriptQueue only
     private var artworkScript: NSAppleScript?  // scriptQueue only

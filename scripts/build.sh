@@ -1,9 +1,10 @@
 #!/bin/bash
-# Builds build/SonyNotch.app with the Command Line Tools only (no Xcode needed).
+# Builds build/Overhead.app with the Command Line Tools only (no Xcode needed).
 #   CONFIG=debug|release (default: debug)
 #   ARCHS="arm64 x86_64"  (default: this Mac's architecture; several = universal binary via lipo)
 #   DEBUG_PROTOCOL=1      (hex-dumps every frame exchanged with the headphones to stderr)
-#   SIGN_IDENTITY=name    (default: "SonyNotch Code Signing" when that certificate is in a keychain, else ad-hoc)
+#   SIGN_IDENTITY=name    (default: "SonyNotch Code Signing" when that certificate is in a keychain, else ad-hoc;
+#                         the certificate keeps the app's former name: a new one would cost users their permissions)
 #   SIGN_KEYCHAIN=path    (keychain holding SIGN_IDENTITY, default: the search list)
 #
 # Every release is signed with the same certificate, so macOS keeps the Bluetooth and music app permissions across
@@ -15,7 +16,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CORE=$ROOT/Client
 MAC=$CORE/macos
 OUT=$ROOT/build
-APP=$OUT/SonyNotch.app
+APP=$OUT/Overhead.app
 SDK=$(xcrun --show-sdk-path)
 CONFIG=${CONFIG:-debug}
 ARCHS=${ARCHS:-$(uname -m)}
@@ -42,7 +43,7 @@ for ARCH in $ARCHS; do
 
     echo "== [$ARCH] Swift"
     swiftc -target "$TARGET" -sdk "$SDK" -swift-version 5 $SWIFT_OPT $SWIFT_DEFINES -wmo -parse-as-library \
-        -module-name SonyNotch \
+        -module-name Overhead \
         -import-objc-header "$MAC/SonyHeadphonesClient-Bridging-Header.h" -I "$MAC" -I "$CORE" \
         -c "${SWIFT_SOURCES[@]}" -o "$OBJ/swift.o"
 
@@ -55,19 +56,19 @@ for ARCH in $ARCHS; do
     done
 
     echo "== [$ARCH] Link"
-    swiftc -target "$TARGET" -sdk "$SDK" "$OBJ"/*.o -o "$OBJ/SonyNotch" -lc++ \
+    swiftc -target "$TARGET" -sdk "$SDK" "$OBJ"/*.o -o "$OBJ/Overhead" -lc++ \
         -framework AppKit -framework SwiftUI -framework Combine -framework IOBluetooth \
         -framework IOBluetoothUI -framework ServiceManagement
-    BINARIES="$BINARIES $OBJ/SonyNotch"
+    BINARIES="$BINARIES $OBJ/Overhead"
 
-    # Loaded by /usr/bin/perl for the notch's Other Players (see NowPlayingHelper.m), not by SonyNotch itself.
+    # Loaded by /usr/bin/perl for the notch's Other Players (see NowPlayingHelper.m), not by Overhead itself.
     echo "== [$ARCH] Now Playing helper"
     clang -target "$TARGET" -isysroot "$SDK" $CXX_OPT -fobjc-arc -dynamiclib -framework Foundation \
         "$MAC/Helper/NowPlayingHelper.m" -o "$OBJ/NowPlayingHelper.dylib"
     HELPERS="$HELPERS $OBJ/NowPlayingHelper.dylib"
 done
 
-lipo -create $BINARIES -output "$APP/Contents/MacOS/SonyNotch"
+lipo -create $BINARIES -output "$APP/Contents/MacOS/Overhead"
 lipo -create $HELPERS -output "$APP/Contents/Frameworks/NowPlayingHelper.dylib"
 
 echo "== Resources"

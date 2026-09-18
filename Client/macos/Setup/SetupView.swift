@@ -1,6 +1,6 @@
 import SwiftUI
 
-// The setup assistant: one row per thing SonyNotch needs, each turning green once it's done, with the button
+// The setup assistant: one row per thing Overhead needs, each turning green once it's done, with the button
 // that fixes it (or, once it's fine, reopens or redoes it: nothing is ever stuck). Shown at first launch, and from
 // "Setup…" in the menu.
 struct SetupView: View {
@@ -15,12 +15,12 @@ struct SetupView: View {
             HStack(spacing: 12) {
                 Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 48, height: 48)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(tr("Welcome to SonyNotch")).font(.title2.weight(.semibold))
+                    Text(tr("Welcome to Overhead")).font(.title2.weight(.semibold))
                     Text(tr("A few permissions and your headphones, and you're set.")).foregroundColor(.secondary)
                 }
             }
 
-            Text(tr("How do you want to use SonyNotch?")).font(.headline)
+            Text(tr("How do you want to use Overhead?")).font(.headline)
             HStack(spacing: 10) {
                 ModeCard(mode: .notchOnly, icon: "music.note", title: tr("Notch"),
                          detail: tr("Your music in the notch, no headphones needed."), selection: $settings.usageMode)
@@ -45,7 +45,7 @@ struct SetupView: View {
                     }
                 }
                 SetupRow(icon: "power", title: tr("Launch at Login"),
-                         detail: tr("Start SonyNotch when you log in to your Mac."),
+                         detail: tr("Start Overhead when you log in to your Mac."),
                          done: settings.launchAtLogin) {
                     Toggle("", isOn: Binding(get: { settings.launchAtLogin }, set: { on in
                         if let error = settings.setLaunchAtLogin(on) { showError(error) }
@@ -58,7 +58,7 @@ struct SetupView: View {
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(nsColor: .separatorColor)))
 
             HStack {
-                Text(tr("You can open this window again with Setup… in the SonyNotch menu."))
+                Text(tr("You can open this window again with Setup… in the Overhead menu."))
                     .font(.footnote)
                     .foregroundColor(.secondary)
                 Spacer()
@@ -84,8 +84,8 @@ struct SetupView: View {
 
     private var bluetoothDetail: String {
         switch checks.bluetooth {
-        case .granted: return tr("SonyNotch can talk to your headphones.")
-        case .denied: return tr("Bluetooth access was refused. Turn SonyNotch on in Privacy & Security › Bluetooth.")
+        case .granted: return tr("Overhead can talk to your headphones.")
+        case .denied: return tr("Bluetooth access was refused. Turn Overhead on in Privacy & Security › Bluetooth.")
         default: return tr("Needed to talk to your headphones.")
         }
     }
@@ -135,18 +135,18 @@ struct SetupView: View {
 
     private func playerDetail(_ player: ScriptedPlayer, _ check: PlayerCheck) -> String {
         if !check.running {
-            return String(format: tr("For the notch player. Open %@ to allow SonyNotch to control it."), player.name)
+            return String(format: tr("For the notch player. Open %@ to allow Overhead to control it."), player.name)
         }
         if check.asking { return tr("Answer macOS's question: click Allow.") }
         switch check.access {
-        case .granted: return tr("SonyNotch can show and control your music.")
+        case .granted: return tr("Overhead can show and control your music.")
         case .denied: return tr("Control was refused. Ask Again shows macOS's question once more.")
-        default: return String(format: tr("Allow SonyNotch to show and control the music playing in %@."), player.name)
+        default: return String(format: tr("Allow Overhead to show and control the music playing in %@."), player.name)
         }
     }
 }
 
-// One way of using SonyNotch, picked by clicking the card.
+// One way of using Overhead, picked by clicking the card.
 private struct ModeCard: View {
     let mode: UsageMode
     let icon: String
