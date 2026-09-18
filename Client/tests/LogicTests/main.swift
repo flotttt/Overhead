@@ -213,6 +213,19 @@ do {
     check(BatteryDisplay.tone(level: 5, charging: true) == .charging, "charging wins")
 }
 
+// SetupAccess: what the setup assistant shows for each permission.
+do {
+    check(SetupAccess.spotify(status: 0) == .granted, "Spotify allowed")
+    check(SetupAccess.spotify(status: -1744) == .notDetermined, "Spotify not asked yet")
+    check(SetupAccess.spotify(status: -1743) == .denied, "Spotify refused")
+    check(SetupAccess.spotify(status: -600) == .unavailable, "Spotify closed")
+    check(SetupAccess.spotify(status: -50) == .unavailable, "other errors: can't tell")
+    check(SetupAccess.bluetooth(rawAuthorization: 3) == .granted, "Bluetooth allowed always")
+    check(SetupAccess.bluetooth(rawAuthorization: 0) == .notDetermined, "Bluetooth not asked yet")
+    check(SetupAccess.bluetooth(rawAuthorization: 2) == .denied && SetupAccess.bluetooth(rawAuthorization: 1) == .denied,
+          "Bluetooth denied or restricted")
+}
+
 // PlaybackClock: live position from the last known one; display format.
 do {
     let t0 = Date(timeIntervalSince1970: 1_000)

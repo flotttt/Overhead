@@ -41,6 +41,7 @@ final class HeadphonesMenu {
     private let gesturesItem = NSMenuItem()
     private var gestureItems: [(NSMenuItem, ReferenceWritableKeyPath<AppSettings, Bool>)] = []
     private let notchSizeMenuDelegate = NotchSizeMenuDelegate()
+    var onOpenSetup: (() -> Void)?  // Options › Setup Assistant
     private let gesturesMenuDelegate = NotchSizeMenuDelegate()
     // SwiftUI sliders in a submenu stop taking clicks once the submenu has been closed and opened again, so their
     // rows are rebuilt each time their submenu opens (see sliderMenuItem).
@@ -186,6 +187,8 @@ final class HeadphonesMenu {
         optionsMenu.addItem(makeGlowItem())
         optionsMenu.addItem(makeNotchSizeItem())
         optionsMenu.addItem(makeGesturesItem())
+        optionsMenu.addItem(.separator())
+        optionsMenu.addItem(ActionMenuItem(tr("Setup Assistant…")) { [weak self] in self?.onOpenSetup?() })
         let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
         optionsItem.submenu = optionsMenu
         menu.addItem(optionsItem)
