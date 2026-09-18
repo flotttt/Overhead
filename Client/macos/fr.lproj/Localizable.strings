@@ -105,12 +105,10 @@
 "Glow Size" = "Taille";
 "Progress Ring" = "Anneau de progression";
 "Headphones Battery" = "Batterie du casque";
-"Setup Assistant…" = "Assistant de configuration…";
 "SonyNotch Setup" = "Configuration de SonyNotch";
 "Welcome to SonyNotch" = "Bienvenue dans SonyNotch";
 "A few permissions and your headphones, and you're set." = "Quelques autorisations et votre casque, et c’est prêt.";
 "Start SonyNotch when you log in to your Mac." = "Ouvrir SonyNotch au démarrage de votre Mac.";
-"You can open this assistant again from SonyNotch Options." = "Vous pourrez rouvrir cet assistant depuis les Options de SonyNotch.";
 "Done" = "Terminer";
 "Allow" = "Autoriser";
 "SonyNotch can talk to your headphones." = "SonyNotch peut communiquer avec votre casque.";
@@ -122,7 +120,12 @@
 "For the notch player. Open Spotify to allow SonyNotch to control it." = "Pour le lecteur de l’encoche. Ouvrez Spotify pour autoriser SonyNotch à le contrôler.";
 "Answer macOS's question: click Allow." = "Répondez à la question de macOS : cliquez sur Autoriser.";
 "SonyNotch can show and control your music." = "SonyNotch peut afficher et contrôler votre musique.";
-"Control was refused. Turn Spotify on in Privacy & Security › Automation › SonyNotch." = "Le contrôle a été refusé. Activez Spotify dans Confidentialité et sécurité › Automatisation › SonyNotch.";
 "Allow SonyNotch to show and control the music playing in Spotify." = "Autorisez SonyNotch à afficher et contrôler la musique en cours dans Spotify.";
 "Optional" = "Facultatif";
 "To do" = "À faire";
+"Setup…" = "Configuration…";
+"Settings" = "Réglages";
+"Reconnect" = "Reconnecter";
+"Ask Again" = "Redemander";
+"Control was refused. Ask Again shows macOS's question once more." = "Le contrôle a été refusé. Redemander affiche de nouveau la question de macOS.";
+"You can open this window again with Setup… in the SonyNotch menu." = "Vous pourrez rouvrir cette fenêtre avec Configuration… dans le menu de SonyNotch.";

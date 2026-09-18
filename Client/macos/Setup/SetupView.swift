@@ -1,7 +1,8 @@
 import SwiftUI
 
 // The setup assistant: one row per thing SonyNotch needs, each turning green once it's done, with the button
-// that fixes it. Shown at first launch, and from SonyNotch Options › Setup Assistant.
+// that fixes it (or, once it's fine, reopens or redoes it: nothing is ever stuck). Shown at first launch, and from
+// "Setup…" in the menu.
 struct SetupView: View {
     @ObservedObject var checks: SetupChecks
     @ObservedObject var model: HeadphonesModel
@@ -40,7 +41,7 @@ struct SetupView: View {
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(nsColor: .separatorColor)))
 
             HStack {
-                Text(tr("You can open this assistant again from SonyNotch Options."))
+                Text(tr("You can open this window again with Setup… in the SonyNotch menu."))
                     .font(.footnote)
                     .foregroundColor(.secondary)
                 Spacer()
@@ -54,10 +55,11 @@ struct SetupView: View {
     private var bluetoothRow: some View {
         SetupRow(icon: "antenna.radiowaves.left.and.right", title: tr("Bluetooth"),
                  detail: bluetoothDetail, done: checks.bluetooth == .granted) {
-            switch checks.bluetooth {
-            case .notDetermined: Button(tr("Allow")) { checks.requestBluetooth() }
-            case .denied: Button(tr("Open Settings")) { checks.openBluetoothSettings() }
-            default: EmptyView()
+            // Always something to click: macOS only asks once, afterwards the switch is in System Settings.
+            if checks.bluetooth == .notDetermined {
+                Button(tr("Allow")) { checks.requestBluetooth() }
+            } else {
+                Button(tr("Settings")) { checks.openBluetoothSettings() }
             }
         }
     }
@@ -82,7 +84,7 @@ struct SetupView: View {
             case .connecting:
                 ProgressView().controlSize(.small)
             case .connected:
-                EmptyView()
+                Button(tr("Reconnect")) { model.reconnect() }
             }
         }
     }
@@ -105,8 +107,8 @@ struct SetupView: View {
             } else {
                 switch checks.spotify {
                 case .notDetermined: Button(tr("Allow")) { checks.requestSpotify() }
-                case .denied: Button(tr("Open Settings")) { checks.openAutomationSettings() }
-                default: EmptyView()
+                case .denied: Button(tr("Ask Again")) { checks.askSpotifyAgain() }
+                default: Button(tr("Settings")) { checks.openAutomationSettings() }
                 }
             }
         }
@@ -117,7 +119,7 @@ struct SetupView: View {
         if checks.askingSpotify { return tr("Answer macOS's question: click Allow.") }
         switch checks.spotify {
         case .granted: return tr("SonyNotch can show and control your music.")
-        case .denied: return tr("Control was refused. Turn Spotify on in Privacy & Security › Automation › SonyNotch.")
+        case .denied: return tr("Control was refused. Ask Again shows macOS's question once more.")
         default: return tr("Allow SonyNotch to show and control the music playing in Spotify.")
         }
     }

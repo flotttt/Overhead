@@ -80,6 +80,12 @@ final class HeadphonesModel: ObservableObject {
         }
     }
 
+    // Drops the control link and opens it again (setup assistant), for a headset that stopped answering.
+    func reconnect() {
+        disconnect()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.connect() }
+    }
+
     func disconnect() {
         userDisconnected = true
         cancelReconnect()

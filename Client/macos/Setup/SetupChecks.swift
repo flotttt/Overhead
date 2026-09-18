@@ -72,6 +72,26 @@ final class SetupChecks: ObservableObject {
         }
     }
 
+    // macOS never asks again about a refused permission: forget SonyNotch's answer about Spotify (and only that),
+    // then ask. tccutil can reset an app's own entry without administrator rights.
+    func askSpotifyAgain() {
+        guard spotifyRunning, !askingSpotify, let bundleID = Bundle.main.bundleIdentifier else { return }
+        let reset = Process()
+        reset.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
+        reset.arguments = ["reset", "AppleEvents", bundleID]
+        reset.terminationHandler = { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.spotify = .notDetermined
+                self?.requestSpotify()
+            }
+        }
+        do {
+            try reset.run()
+        } catch {
+            openAutomationSettings()
+        }
+    }
+
     func launchSpotify() {
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.spotifyID) else {
             NSWorkspace.shared.open(URL(string: "https://www.spotify.com/download/mac/")!)
