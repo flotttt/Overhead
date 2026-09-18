@@ -33,6 +33,7 @@ final class HeadphonesMenu {
     private var autoConnectItem = NSMenuItem()
     private var autoReconnectItem = NSMenuItem()
     private var showNotchItem = NSMenuItem()
+    private var otherPlayersItem = NSMenuItem()
     private var artworkGlowItem = NSMenuItem()
     private var progressRingItem = NSMenuItem()
     private var headphonesBatteryItem = NSMenuItem()
@@ -161,6 +162,11 @@ final class HeadphonesMenu {
         target.addItem(makeGlowItem())
         target.addItem(makeNotchSizeItem())
         target.addItem(makeGesturesItem())
+        otherPlayersItem = ActionMenuItem(tr("Other Players (Experimental)")) { [weak settings] in
+            settings?.otherPlayers.toggle()
+        }
+        otherPlayersItem.toolTip = tr("Deezer, YouTube Music, your browser… through macOS's Now Playing.")
+        target.addItem(otherPlayersItem)
     }
 
     private func addAmbientSection() {
@@ -320,6 +326,8 @@ final class HeadphonesMenu {
         headphonesBatteryItem.isEnabled = settings.showNotch
         notchSizeItem.isEnabled = settings.showNotch
         gesturesItem.isEnabled = settings.showNotch
+        otherPlayersItem.state = settings.otherPlayers ? .on : .off
+        otherPlayersItem.isEnabled = settings.showNotch
         for (item, keyPath) in gestureItems {
             item.state = settings[keyPath: keyPath] ? .on : .off
             // Reversing a gesture that is off means nothing. (Matched by setting, not position: the gestures

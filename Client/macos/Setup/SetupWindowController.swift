@@ -8,10 +8,10 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
     private let settings: AppSettings
     private var window: NSWindow?
 
-    init(model: HeadphonesModel, settings: AppSettings, onSpotifyGranted: @escaping () -> Void) {
+    init(model: HeadphonesModel, settings: AppSettings, onPlayerGranted: @escaping () -> Void) {
         self.model = model
         self.settings = settings
-        checks.onSpotifyGranted = onSpotifyGranted
+        checks.onPlayerGranted = onPlayerGranted
     }
 
     func show() {

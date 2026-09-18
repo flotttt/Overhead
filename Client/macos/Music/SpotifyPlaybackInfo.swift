@@ -1,8 +1,8 @@
 import Foundation
 
-// Result of decoding what the local Spotify app reports.
-enum SpotifyState: Equatable {
-    case stopped            // Spotify is open with nothing loaded
+// Result of decoding what a music app reports.
+enum PlayerState: Equatable {
+    case stopped            // the app is open with nothing loaded
     case track(NowPlaying)
     case incomplete         // not enough information: read the state through Apple Events instead
 }
@@ -14,7 +14,7 @@ enum SpotifyPlaybackInfo {
 
     // com.spotify.client.PlaybackStateChanged userInfo: "Player State" (Playing / Paused / Stopped), "Track ID",
     // "Name", "Artist", "Album", "Duration" (ms), "Playback Position" (s). It never carries artwork or volume.
-    static func parse(signal userInfo: [AnyHashable: Any]?, at date: Date) -> SpotifyState {
+    static func parse(signal userInfo: [AnyHashable: Any]?, at date: Date) -> PlayerState {
         guard let info = userInfo, let state = info["Player State"] as? String else { return .incomplete }
         if state == "Stopped" { return .stopped }
         guard state == "Playing" || state == "Paused",
@@ -34,9 +34,9 @@ enum SpotifyPlaybackInfo {
             capabilities: localCapabilities))
     }
 
-    // SpotifyScript.readState's reply: "stopped", or 9 fields separated by U+001F — state, track id, name,
+    // ScriptedPlayer.spotify.readScript's reply: "stopped", or 9 fields separated by U+001F — state, track id, name,
     // artist, album, duration (ms), position (ms), artwork URL, volume.
-    static func parse(scriptResult text: String, at date: Date) -> SpotifyState {
+    static func parse(scriptResult text: String, at date: Date) -> PlayerState {
         if text == "stopped" { return .stopped }
         let fields = text.split(separator: fieldSeparator, omittingEmptySubsequences: false).map(String.init)
         guard fields.count == 9, fields[0] == "playing" || fields[0] == "paused", !fields[1].isEmpty else {

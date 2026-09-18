@@ -1,7 +1,7 @@
 import SwiftUI
 
 // Notch player page: artwork, title and artist; progress; headphones, previous, play/pause, next,
-// volume. The volume button swaps the progress bar for Spotify's volume bar for a few seconds. Sizes follow
+// volume. The volume button swaps the progress bar for the player's volume bar for a few seconds. Sizes follow
 // the notch zoom; extra height grows the artwork.
 struct MusicTab: View {
     private static let volumeAutoHide: TimeInterval = 4
@@ -26,9 +26,11 @@ struct MusicTab: View {
         Group {
             switch music.status {
             case .notRunning:
-                message(tr("Spotify isn't open"), button: tr("Open Spotify")) { music.launchPlayer() }
+                message(String(format: tr("%@ isn't open"), music.playerName),
+                        button: String(format: tr("Open %@"), music.playerName)) { music.launchPlayer() }
             case .permissionDenied:
-                message(tr("SonyNotch isn't allowed to control Spotify."), button: tr("Open Settings")) {
+                message(String(format: tr("SonyNotch isn't allowed to control %@."), music.playerName),
+                        button: tr("Open Settings")) {
                     music.openAutomationSettings()
                 }
             case .ready:
@@ -79,14 +81,14 @@ struct MusicTab: View {
     private func player(_ track: NowPlaying, artwork: CGFloat) -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 12 * s) {
-                // Brings Spotify to the front (opening the track's link could restart it).
+                // Brings the player to the front (opening the track's link could restart it).
                 Button { music.launchPlayer() } label: {
                     ArtworkView(image: music.artwork, trackID: track.trackID,
                                 isBackward: { [music] in music.trackChangeIsBackward },
                                 size: artwork, cornerRadius: artwork * 0.2)
                 }
                 .buttonStyle(PressableButtonStyle())
-                .accessibilityLabel(tr("Open Spotify"))
+                .accessibilityLabel(String(format: tr("Open %@"), music.playerName))
                 VStack(alignment: .leading, spacing: 2 * s) {
                     Text(track.title).font(.system(size: 14 * s, weight: .semibold)).foregroundColor(.white)
                     Text(track.artist).font(.system(size: 13 * s)).foregroundColor(.gray)
@@ -125,7 +127,7 @@ struct MusicTab: View {
                     iconButton("forward.fill", size: 17, color: .white, label: tr("Next track")) { music.next() }
                 }
                 iconButton(showVolume ? "speaker.wave.2.fill" : "speaker.wave.2", color: showVolume ? .white : .gray,
-                           label: tr("Spotify volume")) { toggleVolume() }
+                           label: String(format: tr("%@ volume"), music.playerName)) { toggleVolume() }
                     .disabled(!track.capabilities.canSetVolume || track.volume == nil)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }

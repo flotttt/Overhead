@@ -284,7 +284,7 @@ final class NotchController {
 
     // MARK: - Gestures
 
-    // Over the notch (closed, or open on the player): swipe for previous / next, scroll for Spotify's volume.
+    // Over the notch (closed, or open on the player): swipe for previous / next, scroll for the player's volume.
     private func scrolled(_ event: NSEvent) {
         let preferences = settings.gesturePreferences
         guard preferences.swipeToSkip || preferences.scrollForVolume,

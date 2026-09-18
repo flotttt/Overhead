@@ -6,7 +6,7 @@ final class NotchViewState: ObservableObject {
     @Published var isOpen = false
     @Published var openContentMounted = false  // true while open, and while the closing animation plays
     @Published var trailingHovered = false     // pointer over the resting music control
-    @Published var scrolledVolume: Int?         // Spotify volume being set by scrolling over the notch
+    @Published var scrolledVolume: Int?         // player volume being set by scrolling over the notch
     @Published var artworkGlow = true           // Options › Glow
     @Published var progressRing = true          // Options › Progress Ring
     @Published var headphonesBattery = true     // Options › Headphones Battery

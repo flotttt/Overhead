@@ -5,15 +5,15 @@ enum SetupAccess: Equatable {
     case granted
     case notDetermined  // macOS will ask
     case denied         // refused (or restricted): only System Settings can change it
-    case unavailable    // can't tell yet (Spotify closed, for example)
+    case unavailable    // can't tell yet (the music app is closed, for example)
 
-    // AEDeterminePermissionToAutomateTarget's answer about Spotify.
-    static func spotify(status: Int) -> SetupAccess {
+    // AEDeterminePermissionToAutomateTarget's answer about a music app.
+    static func automation(status: Int) -> SetupAccess {
         switch status {
         case 0: return .granted
         case -1744: return .notDetermined  // errAEEventWouldRequireUserConsent
         case -1743: return .denied         // errAEEventNotPermitted
-        default: return .unavailable       // -600 procNotFound: Spotify isn't running
+        default: return .unavailable       // -600 procNotFound: the app isn't running
         }
     }
 

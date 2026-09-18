@@ -6,9 +6,12 @@ enum MusicSourceStatus: Equatable {
     case ready
 }
 
-// Where the music comes from. Step 1: SpotifyLocalSource; step 2 adds the Spotify Web API.
+// One music app. ScriptedPlayerSource covers Spotify and Music; the Spotify Web API would be another.
 // Called on the main thread; onChange is called on the main thread.
 protocol MusicSource: AnyObject {
+    var id: String { get }
+    var playerName: String { get }
+    var bundleIdentifier: String { get }
     var onChange: ((MusicSourceStatus, NowPlaying?) -> Void)? { get set }
     func start()
     func stop()

@@ -215,11 +215,11 @@ do {
 
 // SetupAccess: what the setup assistant shows for each permission.
 do {
-    check(SetupAccess.spotify(status: 0) == .granted, "Spotify allowed")
-    check(SetupAccess.spotify(status: -1744) == .notDetermined, "Spotify not asked yet")
-    check(SetupAccess.spotify(status: -1743) == .denied, "Spotify refused")
-    check(SetupAccess.spotify(status: -600) == .unavailable, "Spotify closed")
-    check(SetupAccess.spotify(status: -50) == .unavailable, "other errors: can't tell")
+    check(SetupAccess.automation(status: 0) == .granted, "player allowed")
+    check(SetupAccess.automation(status: -1744) == .notDetermined, "player not asked yet")
+    check(SetupAccess.automation(status: -1743) == .denied, "player refused")
+    check(SetupAccess.automation(status: -600) == .unavailable, "player closed")
+    check(SetupAccess.automation(status: -50) == .unavailable, "other errors: can't tell")
     check(SetupAccess.bluetooth(rawAuthorization: 3) == .granted, "Bluetooth allowed always")
     check(SetupAccess.bluetooth(rawAuthorization: 0) == .notDetermined, "Bluetooth not asked yet")
     check(SetupAccess.bluetooth(rawAuthorization: 2) == .denied && SetupAccess.bluetooth(rawAuthorization: 1) == .denied,
@@ -239,6 +239,72 @@ do {
           "notch only: music without the headphones side")
     check(NotchContent.restingState(hasMusic: true, headphonesConnected: true, mode: .both) == .musicAndHeadphones,
           "both: unchanged")
+}
+
+// AppleMusicPlaybackInfo: the Music app's reply (fields separated by U+001F) and its playerInfo signal.
+do {
+    let t0 = Date(timeIntervalSince1970: 1_000)
+    let sep = "\u{1F}"
+    let text = ["playing", "A1B2C3D4E5F60718", "Title", "Artist", "Album", "215000", "42500", "60"].joined(separator: sep)
+    if case .track(let track) = AppleMusicPlaybackInfo.parse(scriptResult: text, at: t0) {
+        check(track.trackID == "apple-music:A1B2C3D4E5F60718" && track.title == "Title" && track.artist == "Artist",
+              "music: names")
+        check(track.duration == 215 && track.position == 42.5 && track.isPlaying && track.volume == 60, "music: timing")
+        check(track.artworkURL == nil && track.capabilities.canSeek && track.capabilities.canSetVolume,
+              "music: artwork read separately, seek and volume")
+    } else {
+        check(false, "music reply decodes to a track")
+    }
+    check(AppleMusicPlaybackInfo.parse(scriptResult: "stopped", at: t0) == .stopped, "music: stopped")
+    check(AppleMusicPlaybackInfo.parse(scriptResult: "nonsense", at: t0) == .incomplete, "music: malformed")
+    check(AppleMusicPlaybackInfo.parse(signal: ["Player State": "Stopped"], at: t0) == .stopped, "music signal: stopped")
+    check(AppleMusicPlaybackInfo.parse(signal: ["Player State": "Playing", "Name": "X"], at: t0) == .incomplete,
+          "music signal: read the details")
+}
+
+// NowPlayingInfo: NowPlayingHelper's JSON lines.
+do {
+    let now = Date(timeIntervalSince1970: 2_000)
+    let line = #"{"bundle":"com.brave.Browser","playing":true,"title":"Set","artist":"DJ","album":null,"duration":300.5,"elapsed":12.25,"timestamp":1990,"artworkID":"a1","artwork":"AAEC"}"#
+    if case .track(let bundleID, let track)? = NowPlayingInfo.parse(line: line, receivedAt: now) {
+        check(bundleID == "com.brave.Browser" && track.title == "Set" && track.artist == "DJ" && track.album == "",
+              "now playing: names")
+        check(track.duration == 300.5 && track.position == 12.25 && track.isPlaying
+              && track.positionDate == Date(timeIntervalSince1970: 1_990), "now playing: timing")
+        check(track.artworkData == Data([0, 1, 2]) && track.volume == nil, "now playing: artwork, no volume")
+        check(track.capabilities.canSeek && !track.capabilities.canSetVolume, "now playing: seek, no volume")
+        check(track.trackID == "now-playing:com.brave.Browser:Set\u{1F}DJ", "now playing: stable track id")
+    } else {
+        check(false, "now playing line decodes to a track")
+    }
+    let live = #"{"bundle":"x","playing":false,"title":"Live","artist":null,"album":null,"duration":null,"elapsed":null,"timestamp":2500}"#
+    if case .track(_, let track)? = NowPlayingInfo.parse(line: live, receivedAt: now) {
+        check(track.duration == 0 && !track.capabilities.canSeek && track.position == 0, "now playing: stream")
+        check(track.positionDate == now, "now playing: a future timestamp is clamped to now")
+    } else {
+        check(false, "stream line decodes to a track")
+    }
+    check(NowPlayingInfo.parse(line: #"{"bundle":null}"#, receivedAt: now) == .nothing, "now playing: nothing")
+    check(NowPlayingInfo.parse(line: "not json", receivedAt: now) == nil, "now playing: garbage ignored")
+}
+
+// MusicSourcePicker: the notch follows the player that plays, the last one to start when several do.
+do {
+    let t0 = Date(timeIntervalSince1970: 1_000)
+    func source(_ id: String, playing: Bool, track: Bool = true) -> SourceSnapshot {
+        SourceSnapshot(id: id, isPlaying: playing, hasTrack: track)
+    }
+    check(MusicSourcePicker.pick([source("spotify", playing: false), source("music", playing: true)],
+                                 playingSince: ["music": t0], current: "spotify") == "music", "the playing one")
+    check(MusicSourcePicker.pick([source("spotify", playing: true), source("music", playing: true)],
+                                 playingSince: ["spotify": t0, "music": t0.addingTimeInterval(5)], current: "spotify")
+          == "music", "several playing: the last to start")
+    check(MusicSourcePicker.pick([source("spotify", playing: false), source("music", playing: false)],
+                                 playingSince: [:], current: "music") == "music", "all paused: keep the current one")
+    check(MusicSourcePicker.pick([source("spotify", playing: false), source("music", playing: false, track: false)],
+                                 playingSince: [:], current: "music") == "spotify", "current has nothing: one that has")
+    check(MusicSourcePicker.pick([source("spotify", playing: false, track: false)], playingSince: [:], current: nil)
+          == "spotify", "nothing anywhere: the first")
 }
 
 // PlaybackClock: live position from the last known one; display format.
@@ -300,7 +366,7 @@ do {
     check(SpotifyPlaybackInfo.parse(signal: ["Player State": "Playing"], at: t0) == .incomplete, "signal without track id: incomplete")
 }
 
-// SpotifyPlaybackInfo: the text SpotifyScript.readState returns (fields separated by U+001F).
+// SpotifyPlaybackInfo: the text ScriptedPlayer.spotify.readScript returns (fields separated by U+001F).
 do {
     let t0 = Date(timeIntervalSince1970: 1_000)
     let sep = "\u{1F}"

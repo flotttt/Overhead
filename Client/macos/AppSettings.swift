@@ -28,6 +28,7 @@ final class AppSettings: ObservableObject {
         static let hapticOnSkip = "hapticOnSkip"
         static let hapticOnVolume = "hapticOnVolume"
         static let hapticStrength = "hapticStrength"
+        static let otherPlayers = "otherPlayers"
     }
 
     private let defaults: UserDefaults
@@ -63,6 +64,8 @@ final class AppSettings: ObservableObject {
     @Published var reverseScroll: Bool { didSet { defaults.set(reverseScroll, forKey: Keys.reverseScroll) } }
     @Published var artworkGlow: Bool { didSet { defaults.set(artworkGlow, forKey: Keys.artworkGlow) } }
     @Published var progressRing: Bool { didSet { defaults.set(progressRing, forKey: Keys.progressRing) } }
+    // Deezer, YouTube Music, browsers… through macOS's Now Playing (experimental).
+    @Published var otherPlayers: Bool { didSet { defaults.set(otherPlayers, forKey: Keys.otherPlayers) } }
     @Published var headphonesBattery: Bool { didSet { defaults.set(headphonesBattery, forKey: Keys.headphonesBattery) } }
     @Published var glowSize: Double { didSet { defaults.set(glowSize, forKey: Keys.glowSize) } }
     static let glowSizeRange: ClosedRange<CGFloat> = 0.5...1.75  // times the default glow size
@@ -105,7 +108,7 @@ final class AppSettings: ObservableObject {
             Keys.notchArtwork: Double(layout.restingArtwork),
             Keys.swipeToSkip: true, Keys.scrollForVolume: true, Keys.reverseSwipe: false, Keys.reverseScroll: false,
             Keys.artworkGlow: true, Keys.progressRing: true, Keys.headphonesBattery: true, Keys.glowSize: 1.0, Keys.hapticOnOpen: true, Keys.hapticOnButtons: true, Keys.hapticOnSkip: true, Keys.hapticOnVolume: true,
-            Keys.hapticStrength: 2,
+            Keys.hapticStrength: 2, Keys.otherPlayers: true,
         ])
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
         autoReconnect = defaults.bool(forKey: Keys.autoReconnect)
@@ -122,6 +125,7 @@ final class AppSettings: ObservableObject {
         reverseScroll = defaults.bool(forKey: Keys.reverseScroll)
         artworkGlow = defaults.bool(forKey: Keys.artworkGlow)
         progressRing = defaults.bool(forKey: Keys.progressRing)
+        otherPlayers = defaults.bool(forKey: Keys.otherPlayers)
         headphonesBattery = defaults.bool(forKey: Keys.headphonesBattery)
         glowSize = defaults.double(forKey: Keys.glowSize)
         hapticOnOpen = defaults.bool(forKey: Keys.hapticOnOpen)
