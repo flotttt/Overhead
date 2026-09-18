@@ -54,6 +54,12 @@ final class MusicController: ObservableObject {
     }
 
     // Opening reads once (which also retries a refused permission), then every 5 s while open.
+    // Read Spotify again now (after the setup assistant got the permission, for example).
+    func refresh() {
+        guard running else { return }
+        source.refresh()
+    }
+
     func notchDidOpen() {
         guard running else { return }
         source.refresh()

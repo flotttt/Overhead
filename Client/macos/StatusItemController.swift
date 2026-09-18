@@ -5,6 +5,11 @@ import Combine
 final class StatusItemController {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let headphonesMenu: HeadphonesMenu
+
+    var onOpenSetup: (() -> Void)? {
+        get { headphonesMenu.onOpenSetup }
+        set { headphonesMenu.onOpenSetup = newValue }
+    }
     private var cancellables = Set<AnyCancellable>()
 
     init(model: HeadphonesModel, settings: AppSettings, updates: UpdateChecker) {

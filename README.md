@@ -27,9 +27,12 @@ That's it. Open SonyNotch from your Applications folder.
 
 ### First launch
 
-SonyNotch appears in the menu bar. Allow Bluetooth access when macOS asks, and allow SonyNotch to control
-Spotify for the notch player. If your headphones aren't connected to the Mac yet, pair them in System Settings ›
-Bluetooth first.
+SonyNotch appears in the menu bar and opens its setup window. It checks everything SonyNotch needs, with a
+button for each: Bluetooth access, your headphones, permission to control Spotify (for the notch player) and
+launch at login. Pair your headphones in System Settings › Bluetooth first if they aren't yet.
+
+If something stops working later, open the same window with Setup… in the menu: every line can be fixed or
+redone from there.
 
 Works on macOS 13 or later, on Apple Silicon and Intel Macs.
 

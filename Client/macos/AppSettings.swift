@@ -8,6 +8,7 @@ final class AppSettings: ObservableObject {
         static let autoReconnect = "autoReconnect"
         static let lastDeviceAddress = "lastDeviceAddress"
         static let showNotch = "showNotch"
+        static let setupDone = "setupDone"
         static let notchWidth = "notchOpenWidth"
         static let notchHeight = "notchOpenHeight"
         static let notchSide = "notchSideWidth"
@@ -35,6 +36,11 @@ final class AppSettings: ObservableObject {
     }
     @Published var autoReconnect: Bool {
         didSet { defaults.set(autoReconnect, forKey: Keys.autoReconnect) }
+    }
+    // The setup assistant was closed once: it no longer opens at launch.
+    var setupDone: Bool {
+        get { defaults.bool(forKey: Keys.setupDone) }
+        set { defaults.set(newValue, forKey: Keys.setupDone) }
     }
     @Published var showNotch: Bool {
         didSet { defaults.set(showNotch, forKey: Keys.showNotch) }
