@@ -3,7 +3,8 @@
 Control your Sony headphones from your Mac, right from the menu bar and the notch. No phone app needed.
 
 SonyNotch switches noise cancelling and ambient sound, sets the equalizer and shows the battery of your Sony
-Bluetooth headphones. It also turns the MacBook notch into a small player for the music playing in Spotify.
+Bluetooth headphones. It also turns the MacBook notch into a small player for the music playing in Spotify,
+Apple Music, and (experimental) Deezer, YouTube Music or your browser.
 
 ## Install
 
@@ -29,12 +30,12 @@ That's it. Open SonyNotch from your Applications folder.
 
 SonyNotch appears in the menu bar and opens its setup window. First choose how you want to use it:
 
-- **Notch**: Spotify in the notch, no Sony headphones needed. Bluetooth is never used.
+- **Notch**: your music in the notch, no Sony headphones needed. Bluetooth is never used.
 - **Headphones**: your Sony headphones' settings in the menu bar, without the notch.
 - **Both**: the notch and the headphones together.
 
 The window then checks what that choice needs, with a button for each: Bluetooth access, your headphones,
-permission to control Spotify and launch at login. Pair your headphones in System Settings › Bluetooth first if they aren't yet.
+permission to control Spotify and Music, and launch at login. Pair your headphones in System Settings › Bluetooth first if they aren't yet.
 
 If something stops working later, open the same window with Setup… in the menu: every line can be fixed or
 redone from there.
@@ -45,7 +46,7 @@ Works on macOS 13 or later, on Apple Silicon and Intel Macs.
 
 SonyNotch checks once a day for a new version. When one is out, click **Update to SonyNotch** in its menu: it
 downloads the new version, replaces itself and restarts. When you're up to date, the item is greyed out. Your
-settings and the Bluetooth and Spotify permissions are kept. Coming from version 1.2.1 or older, macOS asks for
+settings and the Bluetooth and music app permissions are kept. Coming from version 1.2.1 or older, macOS asks for
 the permissions one last time.
 
 With Homebrew you can also run `brew upgrade --cask sonynotch`.
@@ -75,10 +76,10 @@ English and French.
 
 Move the pointer over the notch and it opens into a player with:
 
-- the artwork, title and artist (click the artwork to bring Spotify to the front)
+- the artwork, title and artist (click the artwork to bring the player to the front)
 - a progress bar you can click or drag
 - previous, play/pause and next
-- a volume button for Spotify's volume
+- a volume button for the player's volume
 - a headphones button to change the sound mode without opening the menu
 
 Behind the player, a soft glow takes the colour of the artwork.
@@ -94,7 +95,7 @@ shows on the other side.
 With the pointer over the notch, you can also use the trackpad:
 
 - swipe right with two fingers for the next track, left for the previous one
-- scroll up or down to change Spotify's volume, the volume bar shows up while you do
+- scroll up or down to change the player's volume, the volume bar shows up while you do
 
 The trackpad gives a light tap when the notch opens, when you press a button, skip a track or pass every ten
 percent of volume.
@@ -107,8 +108,15 @@ Everything can be adjusted in SonyNotch Options:
 - Glow: turn the glow off or change its size, with a live preview
 - Progress Ring and Headphones Battery: show or hide them on the closed notch
 - Show Notch: turn the notch off completely
+- Other Players (Experimental): follow Deezer, YouTube Music, your browser… too
 
-The player works with the Spotify app for Mac, without any account or login. On a screen without a notch, it
+The player works with the Spotify and Music apps for Mac, without any account or login. When both are open, it
+follows the one playing, the last one started if both are.
+
+With Other Players (Experimental), on by default, the notch also follows any app that shows up in macOS's Now
+Playing: Deezer, YouTube Music, a video in your browser… It reads it through the perl that comes with macOS,
+since macOS 15.4 only lets Apple's own programs read Now Playing. The volume button is greyed out for these
+players, as Now Playing gives no volume. If a macOS update breaks it, only these players stop working. On a screen without a notch, it
 shows up as a black pill at the top of the screen.
 
 ## Supported headphones
@@ -134,8 +142,8 @@ SonyNotch menu.
 **Nothing happens after opening the app.** Check that SonyNotch is allowed in System Settings › Privacy &
 Security › Bluetooth.
 
-**The notch says SonyNotch isn't allowed to control Spotify.** Click Open Settings and turn on Spotify under
-Automation › SonyNotch.
+**The notch says SonyNotch isn't allowed to control Spotify (or Music).** Click Open Settings and turn on the app
+under Automation › SonyNotch.
 
 **The menu bar icon is missing.** When the menu bar is full, macOS hides icons behind the notch. Quit or hide a
 few other menu bar apps.
@@ -176,8 +184,8 @@ Headphones up to the WH-1000XM4 use a first version of this protocol, newer ones
 detects which one when it connects. The byte layouts were checked against the Sony support in
 [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge).
 
-For the notch, Spotify posts a system notification on every playback change, and SonyNotch asks the app for
-the artwork and volume with AppleScript. Nothing is polled while the notch is closed.
+For the notch, Spotify and Music post a system notification on every playback change, and SonyNotch asks the
+app for the details, artwork and volume with AppleScript. Nothing is polled while the notch is closed.
 
 ## Origins
 

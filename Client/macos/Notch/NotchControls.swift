@@ -30,7 +30,7 @@ struct NotchSwitch: View {
     }
 }
 
-// A rounded grey text button ("Connect…", "Open Spotify").
+// A rounded grey text button ("Connect…", "Open Music").
 struct NotchPillButton: View {
     let title: String
     let action: () -> Void

@@ -15,6 +15,7 @@ struct NowPlaying: Equatable {
     var artist: String
     var album: String
     var artworkURL: URL?
+    var artworkData: Data? = nil  // image bytes, for players that give the artwork itself (Music)
     var duration: TimeInterval   // seconds; 0 when unknown
     var position: TimeInterval   // seconds, at positionDate
     var positionDate: Date

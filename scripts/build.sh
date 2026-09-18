@@ -6,7 +6,7 @@
 #   SIGN_IDENTITY=name    (default: "SonyNotch Code Signing" when that certificate is in a keychain, else ad-hoc)
 #   SIGN_KEYCHAIN=path    (keychain holding SIGN_IDENTITY, default: the search list)
 #
-# Every release is signed with the same certificate, so macOS keeps the Bluetooth and Spotify permissions across
+# Every release is signed with the same certificate, so macOS keeps the Bluetooth and music app permissions across
 # updates. An ad-hoc signature is identified by the binary's hash, which changes with every build.
 set -euo pipefail
 shopt -s nullglob
@@ -30,8 +30,9 @@ CXX_SOURCES=("$CORE"/*.cpp)
 OBJCXX_SOURCES=("$MAC"/*.mm)
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 BINARIES=""
+HELPERS=""
 
 for ARCH in $ARCHS; do
     OBJ=$OUT/obj/$CONFIG-$ARCH
@@ -58,9 +59,16 @@ for ARCH in $ARCHS; do
         -framework AppKit -framework SwiftUI -framework Combine -framework IOBluetooth \
         -framework IOBluetoothUI -framework ServiceManagement
     BINARIES="$BINARIES $OBJ/SonyNotch"
+
+    # Loaded by /usr/bin/perl for the notch's Other Players (see NowPlayingHelper.m), not by SonyNotch itself.
+    echo "== [$ARCH] Now Playing helper"
+    clang -target "$TARGET" -isysroot "$SDK" $CXX_OPT -fobjc-arc -dynamiclib -framework Foundation \
+        "$MAC/Helper/NowPlayingHelper.m" -o "$OBJ/NowPlayingHelper.dylib"
+    HELPERS="$HELPERS $OBJ/NowPlayingHelper.dylib"
 done
 
 lipo -create $BINARIES -output "$APP/Contents/MacOS/SonyNotch"
+lipo -create $HELPERS -output "$APP/Contents/Frameworks/NowPlayingHelper.dylib"
 
 echo "== Resources"
 cp "$MAC/info.plist" "$APP/Contents/Info.plist"
@@ -74,6 +82,8 @@ if [ -z "${SIGN_IDENTITY:-}" ] && security find-identity -p codesigning ${SIGN_K
 fi
 SIGN_IDENTITY=${SIGN_IDENTITY:--}
 echo "== Sign ($([ "$SIGN_IDENTITY" = - ] && echo ad-hoc || echo "$SIGN_IDENTITY"))"
+codesign --force --sign "$SIGN_IDENTITY" ${SIGN_KEYCHAIN:+--keychain "$SIGN_KEYCHAIN"} \
+    "$APP/Contents/Frameworks/NowPlayingHelper.dylib"
 codesign --force --sign "$SIGN_IDENTITY" ${SIGN_KEYCHAIN:+--keychain "$SIGN_KEYCHAIN"} \
     --entitlements "$MAC/SonyHeadphonesClient.entitlements" "$APP"
 echo "OK -> $APP"

@@ -17,16 +17,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItemController = StatusItemController(model: model, settings: settings, updates: updates)
         notchController = NotchController(model: model, music: music, settings: settings)
         setupWindow = SetupWindowController(model: model, settings: settings,
-                                            onSpotifyGranted: { [weak self] in self?.music.refresh() })
+                                            onPlayerGranted: { [weak self] in self?.music.refresh() })
         statusItemController?.onOpenSetup = { [weak self] in self?.setupWindow?.show() }
         if !settings.setupDone { setupWindow?.show() }
 
-        // Spotify is only read while the notch is on and used. Both publishers emit their current value first.
+        // The music players are only read while the notch is on and used. Both publishers emit their current value first.
         settings.$showNotch.combineLatest(settings.$usageMode)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] show, mode in
                 if show && mode.usesNotch { self?.music.start() } else { self?.music.stop() }
             }
+            .store(in: &cancellables)
+
+        settings.$otherPlayers
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] on in self?.music.setOtherPlayers(on) }
             .store(in: &cancellables)
 
         deviceWatcher.onConnect = { [weak self] address, name in

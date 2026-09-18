@@ -23,7 +23,7 @@ struct SetupView: View {
             Text(tr("How do you want to use SonyNotch?")).font(.headline)
             HStack(spacing: 10) {
                 ModeCard(mode: .notchOnly, icon: "music.note", title: tr("Notch"),
-                         detail: tr("Spotify in the notch, no headphones needed."), selection: $settings.usageMode)
+                         detail: tr("Your music in the notch, no headphones needed."), selection: $settings.usageMode)
                 ModeCard(mode: .headphonesOnly, icon: "headphones", title: tr("Headphones"),
                          detail: tr("Your Sony headphones' settings in the menu bar."), selection: $settings.usageMode)
                 ModeCard(mode: .both, icon: "sparkles", title: tr("Both"),
@@ -37,9 +37,12 @@ struct SetupView: View {
                     headphonesRow
                     Divider()
                 }
+                // Each music app is optional: the notch works with whichever the user plays.
                 if settings.usageMode.usesNotch {
-                    spotifyRow
-                    Divider()
+                    ForEach(ScriptedPlayer.all, id: \.id) { player in
+                        playerRow(player)
+                        Divider()
+                    }
                 }
                 SetupRow(icon: "power", title: tr("Launch at Login"),
                          detail: tr("Start SonyNotch when you log in to your Mac."),
@@ -112,30 +115,33 @@ struct SetupView: View {
         }
     }
 
-    private var spotifyRow: some View {
-        SetupRow(icon: "music.note", title: tr("Spotify"), detail: spotifyDetail,
-                 done: checks.spotify == .granted, optional: settings.usageMode.usesHeadphones) {
-            if !checks.spotifyRunning {
-                Button(tr("Open Spotify")) { checks.launchSpotify() }
-            } else if checks.askingSpotify {
+    private func playerRow(_ player: ScriptedPlayer) -> some View {
+        let check = checks.check(player)
+        return SetupRow(icon: "music.note", title: player.name, detail: playerDetail(player, check),
+                        done: check.access == .granted, optional: true) {
+            if !check.running {
+                Button(String(format: tr("Open %@"), player.name)) { checks.launch(player) }
+            } else if check.asking {
                 ProgressView().controlSize(.small)
             } else {
-                switch checks.spotify {
+                switch check.access {
                 case .granted: Button(tr("Settings")) { checks.openAutomationSettings() }
-                case .denied: Button(tr("Ask Again")) { checks.askSpotifyAgain() }
-                default: Button(tr("Allow")) { checks.requestSpotify() }  // not asked yet, or macOS can't tell
+                case .denied: Button(tr("Ask Again")) { checks.askAgain(player) }
+                default: Button(tr("Allow")) { checks.request(player) }  // not asked yet, or macOS can't tell
                 }
             }
         }
     }
 
-    private var spotifyDetail: String {
-        if !checks.spotifyRunning { return tr("For the notch player. Open Spotify to allow SonyNotch to control it.") }
-        if checks.askingSpotify { return tr("Answer macOS's question: click Allow.") }
-        switch checks.spotify {
+    private func playerDetail(_ player: ScriptedPlayer, _ check: PlayerCheck) -> String {
+        if !check.running {
+            return String(format: tr("For the notch player. Open %@ to allow SonyNotch to control it."), player.name)
+        }
+        if check.asking { return tr("Answer macOS's question: click Allow.") }
+        switch check.access {
         case .granted: return tr("SonyNotch can show and control your music.")
         case .denied: return tr("Control was refused. Ask Again shows macOS's question once more.")
-        default: return tr("Allow SonyNotch to show and control the music playing in Spotify.")
+        default: return String(format: tr("Allow SonyNotch to show and control the music playing in %@."), player.name)
         }
     }
 }
