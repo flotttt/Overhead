@@ -113,12 +113,15 @@ struct MusicTab: View {
             Spacer(minLength: 6 * s)
             // The side buttons take equal flexible widths, so previous / play / next stay centred on the notch.
             HStack(spacing: 0) {
-                Group {
+                // The spacer keeps this side's width without the headphones button (notch-only mode): an empty
+                // Group would take no room and pull the controls off centre.
+                HStack(spacing: 0) {
                     if let showHeadphones = showHeadphones {
                         iconButton("headphones", label: tr("Headphones"), action: showHeadphones)
                     }
+                    Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
                 HStack(spacing: 22 * s) {
                     iconButton("backward.fill", size: 17, color: .white, label: tr("Previous track")) { music.previous() }
                     iconButton(track.isPlaying ? "pause.fill" : "play.fill", size: 21, color: .white,
