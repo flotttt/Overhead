@@ -11,7 +11,7 @@ final class NowPlayingSource: MusicSource {
     private static let perlScript = """
         use DynaLoader;
         my $lib = DynaLoader::dl_load_file($ARGV[0], 0) or die DynaLoader::dl_error();
-        my $run = DynaLoader::dl_find_symbol($lib, "sonynotch_now_playing_run") or die DynaLoader::dl_error();
+        my $run = DynaLoader::dl_find_symbol($lib, "overhead_now_playing_run") or die DynaLoader::dl_error();
         DynaLoader::dl_install_xsub("main::run", $run);
         run();
         """
@@ -100,7 +100,7 @@ final class NowPlayingSource: MusicSource {
 
     private func launchHelper() {
         guard process == nil else { return }
-        // Writing a command to a helper that just ended must fail with an error, not kill SonyNotch.
+        // Writing a command to a helper that just ended must fail with an error, not kill Overhead.
         signal(SIGPIPE, SIG_IGN)
         guard let helper = Bundle.main.privateFrameworksURL?.appendingPathComponent(Self.helperName),
               FileManager.default.fileExists(atPath: helper.path) else {

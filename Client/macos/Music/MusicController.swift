@@ -15,7 +15,7 @@ final class MusicController: ObservableObject {
     }
     @Published private(set) var artworkTint: NSColor?  // vivid average colour of the artwork
 
-    // The last previous / next asked from SonyNotch, so the artwork can flip the matching way.
+    // The last previous / next asked from Overhead, so the artwork can flip the matching way.
     private(set) var lastSkip: (backward: Bool, date: Date)?
 
     // Something to show: a track, playing or paused (even without the right to control it).

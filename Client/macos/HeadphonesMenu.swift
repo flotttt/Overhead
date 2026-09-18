@@ -129,7 +129,7 @@ final class HeadphonesMenu {
         if mode.usesHeadphones {
             menu.addItem(hostingMenuItem { HeaderRow(model: model) })
         } else {
-            menu.addItem(sectionHeader("SonyNotch"))
+            menu.addItem(sectionHeader("Overhead"))
         }
         errorItem.isEnabled = false
         menu.addItem(errorItem)
@@ -250,7 +250,7 @@ final class HeadphonesMenu {
                 optionsMenu.addItem(.separator())
                 addNotchItems(to: optionsMenu)
             }
-            let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
+            let optionsItem = NSMenuItem(title: tr("Overhead Options"), action: nil, keyEquivalent: "")
             optionsItem.submenu = optionsMenu
             menu.addItem(optionsItem)
             connectItem = ActionMenuItem(tr("Connect…")) { [weak self] in self?.toggleConnection() }
@@ -262,7 +262,7 @@ final class HeadphonesMenu {
         menu.addItem(ActionMenuItem(tr("Setup…")) { [weak self] in self?.onOpenSetup?() })
         updateItem = ActionMenuItem("") { [weak updates] in updates?.install() }
         menu.addItem(updateItem)
-        menu.addItem(ActionMenuItem(tr("Quit SonyNotch"), key: "q") { NSApp.terminate(nil) })
+        menu.addItem(ActionMenuItem(tr("Quit Overhead"), key: "q") { NSApp.terminate(nil) })
     }
 
     // MARK: - Updating
@@ -339,13 +339,13 @@ final class HeadphonesMenu {
         if let release = updates.available {
             let version = release.tag.hasPrefix("v") ? String(release.tag.dropFirst()) : release.tag
             switch updates.state {
-            case .idle: updateItem.title = String(format: tr("Update to SonyNotch %@"), version)
-            case .installing: updateItem.title = tr("Updating SonyNotch…")
-            case .failed: updateItem.title = String(format: tr("Update Failed, Download SonyNotch %@…"), version)
+            case .idle: updateItem.title = String(format: tr("Update to Overhead %@"), version)
+            case .installing: updateItem.title = tr("Updating Overhead…")
+            case .failed: updateItem.title = String(format: tr("Update Failed, Download Overhead %@…"), version)
             }
             updateItem.isEnabled = updates.state != .installing
         } else {
-            updateItem.title = String(format: tr("SonyNotch Is Up to Date (%@)"), updates.currentVersion)
+            updateItem.title = String(format: tr("Overhead Is Up to Date (%@)"), updates.currentVersion)
             updateItem.isEnabled = false
         }
     }

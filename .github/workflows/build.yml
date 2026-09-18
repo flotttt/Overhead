@@ -17,5 +17,5 @@ jobs:
         run: make release
       - uses: actions/upload-artifact@v4
         with:
-          name: SonyNotch-macOS
-          path: build/SonyNotch.zip
+          name: Overhead-macOS
+          path: build/Overhead.zip

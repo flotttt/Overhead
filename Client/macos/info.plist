@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>SonyNotch</string>
+	<string>Overhead</string>
 	<key>CFBundleExecutable</key>
-	<string>SonyNotch</string>
+	<string>Overhead</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
@@ -20,7 +20,7 @@
 		<string>fr</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>SonyNotch</string>
+	<string>Overhead</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -34,7 +34,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>SonyNotch shows and controls the music playing in Spotify and Music.</string>
+	<string>Overhead shows and controls the music playing in Spotify and Music.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>This app uses Bluetooth in order to connect to your headphones.</string>
 	<key>NSHighResolutionCapable</key>

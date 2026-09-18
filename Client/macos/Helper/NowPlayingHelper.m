@@ -1,13 +1,13 @@
 // Reads macOS's "Now Playing" (MediaRemote) for NowPlayingSource: Deezer, YouTube Music, browsers, any app that
 // shows up in Control Center's player. Since macOS 15.4 MediaRemote only answers Apple-signed processes, so this
-// library runs inside /usr/bin/perl: perl loads it, then calls sonynotch_now_playing_run, which never returns.
+// library runs inside /usr/bin/perl: perl loads it, then calls overhead_now_playing_run, which never returns.
 //
 // Out (stdout), one JSON object per line, on every change:
 //   {"bundle": "com.brave.Browser", "playing": true, "title": …, "artist": …, "album": …, "duration": 215.2,
 //    "elapsed": 42.5, "timestamp": 1790000000.1, "artworkID": "…", "artwork": "<base64>"}
 //   {"bundle": null} when nothing is playing anywhere.
 //   "artwork" is only sent when it changed; "timestamp" (Unix time) is when "elapsed" was measured.
-// In (stdin), one command per line: toggle, next, previous, seek <seconds>. End of input (SonyNotch quit): exit.
+// In (stdin), one command per line: toggle, next, previous, seek <seconds>. End of input (Overhead quit): exit.
 #import <Foundation/Foundation.h>
 #include <dlfcn.h>
 #include <stdio.h>
@@ -116,12 +116,12 @@ static void readCommands(void) {
                           stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
         if (line.length > 0) dispatch_async(queue, ^{ runCommand(line); });
     }
-    exit(0);  // SonyNotch closed our input: it quit, or stopped reading other players
+    exit(0);  // Overhead closed our input: it quit, or stopped reading other players
 }
 
 // Called by perl as an XSUB (its two arguments are perl's). Never returns.
 __attribute__((visibility("default")))
-void sonynotch_now_playing_run(void *perl, void *cv) {
+void overhead_now_playing_run(void *perl, void *cv) {
     (void)perl; (void)cv;
     void *mr = dlopen("/System/Library/PrivateFrameworks/MediaRemote.framework/MediaRemote", RTLD_NOW);
     if (!mr) { fprintf(stderr, "MediaRemote not found\n"); exit(2); }
@@ -139,7 +139,7 @@ void sonynotch_now_playing_run(void *perl, void *cv) {
         exit(3);
     }
     setvbuf(stdout, NULL, _IOLBF, 0);
-    queue = dispatch_queue_create("com.sonynotch.nowplaying", DISPATCH_QUEUE_SERIAL);
+    queue = dispatch_queue_create("com.overhead.nowplaying", DISPATCH_QUEUE_SERIAL);
 
     registerForNotifications(queue);
     for (NSString *name in @[@"kMRMediaRemoteNowPlayingInfoDidChangeNotification",

@@ -2,7 +2,7 @@ import Foundation
 
 enum MusicSourceStatus: Equatable {
     case notRunning        // the player app isn't open
-    case permissionDenied  // macOS refused SonyNotch the right to control it
+    case permissionDenied  // macOS refused Overhead the right to control it
     case ready
 }
 

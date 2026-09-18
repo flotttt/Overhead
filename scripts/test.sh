@@ -19,7 +19,7 @@ swiftc -target "$TARGET" -sdk "$SDK" -swift-version 5 \
     "$MAC/Setup/SetupAccess.swift" \
     "$MAC/Music/NowPlaying.swift" "$MAC/Music/PlaybackClock.swift" "$MAC/Music/SpotifyPlaybackInfo.swift" \
     "$MAC/Music/AppleMusicPlaybackInfo.swift" "$MAC/Music/MusicSourcePicker.swift" "$MAC/Music/NowPlayingInfo.swift" \
-    "$MAC/Updates/ReleaseInfo.swift" \
+    "$MAC/Updates/ReleaseInfo.swift" "$MAC/Updates/AppRename.swift" \
     -o "$OUT/LogicTests"
 "$OUT/LogicTests"
 

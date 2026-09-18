@@ -32,14 +32,15 @@ struct LatestRelease: Equatable {
     let version: AppVersion
     let tag: String
     let pageURL: URL
-    let appZipURL: URL?    // SonyNotch.zip, nil if the release doesn't have it (then only the page can be opened)
-    let checksumURL: URL?  // SonyNotch.zip.sha256
+    let appZipURL: URL?    // Overhead.zip, nil if the release doesn't have it (then only the page can be opened)
+    let checksumURL: URL?  // Overhead.zip.sha256
 }
 
 // Reads GitHub's "latest release" reply and decides whether it's an update for this app.
 enum ReleaseInfo {
-    static let latestURL = URL(string: "https://api.github.com/repos/flotttt/SonyNotch/releases/latest")!
-    static let appZipName = "SonyNotch.zip"
+    static let latestURL = URL(string: "https://api.github.com/repos/flotttt/Overhead/releases/latest")!
+    static let appZipName = "Overhead.zip"
+    // Releases also carry SonyNotch.zip (make release) for the updater of SonyNotch 1.4 and older.
 
     private struct Reply: Decodable {
         struct Asset: Decodable {
@@ -65,7 +66,7 @@ enum ReleaseInfo {
                              appZipURL: asset(appZipName), checksumURL: asset(appZipName + ".sha256"))
     }
 
-    // The hash in a `shasum -a 256` output ("<64 hex>  SonyNotch.zip"), lowercased; nil if there isn't one.
+    // The hash in a `shasum -a 256` output ("<64 hex>  Overhead.zip"), lowercased; nil if there isn't one.
     static func checksum(fromFile text: String) -> String? {
         guard let first = text.split(whereSeparator: { $0 == " " || $0 == "\n" }).first else { return nil }
         let hash = first.lowercased()

@@ -15,7 +15,7 @@ final class StatusItemController {
     init(model: HeadphonesModel, settings: AppSettings, updates: UpdateChecker) {
         headphonesMenu = HeadphonesMenu(model: model, settings: settings, updates: updates)
         statusItem.menu = headphonesMenu.menu
-        // Notch only: a music note. Otherwise the headphones' mode, dimmed while disconnected.
+        // Notch only: the app's mark. Otherwise the headphones' mode, dimmed while disconnected.
         model.$connectionState.combineLatest(model.$mode, settings.$usageMode)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state, mode, usage in
@@ -25,9 +25,7 @@ final class StatusItemController {
                     button.image = StatusIcon.image(connected: connected, mode: mode)
                     button.appearsDisabled = !connected
                 } else {
-                    let image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "SonyNotch")
-                    image?.isTemplate = true
-                    button.image = image
+                    button.image = StatusIcon.appMark
                     button.appearsDisabled = false
                 }
             }

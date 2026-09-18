@@ -2,15 +2,15 @@ import AppKit
 
 // Entry point: a menu bar-only app (LSUIElement), no window and no Dock icon.
 @main
-enum SonyNotchApp {
+enum OverheadApp {
     static func main() {
-        // `make run` points the log at ~/Library/Logs/SonyNotch/app.log; `open --stderr`
+        // `make run` points the log at ~/Library/Logs/Overhead/app.log; `open --stderr`
         // fails on recent macOS, so the path is passed as a launch argument instead.
         // Redirect stderr to the log file in append mode (unbuffered for live DEBUG hex
         // dumps). freopen() closes stderr before it knows whether the reopen will
         // succeed, so a failed open would leave stderr closed with nothing to fall
         // back to; open()+dup2() only touches stderr once we know the fd is valid.
-        if let logPath = UserDefaults.standard.string(forKey: "SonyNotchLogFile") {
+        if let logPath = UserDefaults.standard.string(forKey: "OverheadLogFile") {
             let fd = open(logPath, O_WRONLY | O_CREAT | O_APPEND, 0o644)
             if fd >= 0 {
                 dup2(fd, STDERR_FILENO)
@@ -18,6 +18,10 @@ enum SonyNotchApp {
                 setvbuf(stderr, nil, _IONBF, 0)
             }
         }
+
+        // Installed by the updater of SonyNotch or SonyBridge: move to Overhead.app first.
+        if AppRename.moveIfNeeded() { exit(0) }
+        AppRename.finishIfNeeded()
 
         let app = NSApplication.shared
         let delegate = AppDelegate()

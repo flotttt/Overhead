@@ -20,7 +20,7 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
                                  showError: { [weak model] in model?.showError($0) },
                                  done: { [weak self] in self?.window?.close() })
             let window = NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.title = tr("SonyNotch Setup")
+            window.title = tr("Overhead Setup")
             window.contentView = NSHostingView(rootView: view)
             window.isReleasedWhenClosed = false
             window.delegate = self

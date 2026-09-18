@@ -117,8 +117,8 @@ final class UpdateChecker: ObservableObject {
         try fileManager.moveItem(at: downloaded, to: zip)
         try run("/usr/bin/ditto", ["-x", "-k", zip.path, work.path])
 
-        // Only ever install SonyNotch itself, in the version announced.
-        let newApp = work.appendingPathComponent("SonyNotch.app")
+        // Only ever install Overhead itself, in the version announced.
+        let newApp = work.appendingPathComponent("Overhead.app")
         guard let bundle = Bundle(url: newApp), bundle.bundleIdentifier == Bundle.main.bundleIdentifier,
               let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
               AppVersion(version) == release.version else {

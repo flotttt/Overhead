@@ -1,6 +1,6 @@
 import Foundation
 
-// A music app SonyNotch drives with AppleScript: how to read it, command it and decode it.
+// A music app Overhead drives with AppleScript: how to read it, command it and decode it.
 struct ScriptedPlayer {
     let id: String                  // log prefix and source identity
     let name: String                // shown in the notch ("Spotify isn't open")
