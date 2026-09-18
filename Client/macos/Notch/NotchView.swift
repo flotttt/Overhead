@@ -10,6 +10,7 @@ final class NotchViewState: ObservableObject {
     @Published var artworkGlow = true           // Options › Glow
     @Published var progressRing = true          // Options › Progress Ring
     @Published var headphonesBattery = true     // Options › Headphones Battery
+    @Published var headphonesEnabled = true     // false in notch-only mode
     @Published var glowSize: CGFloat = 1        // times the default glow size
     @Published var resting: NotchRestingState = .empty
     @Published var tab: NotchTab = .music
@@ -152,7 +153,7 @@ struct NotchView: View {
 
     // The level to show on the closed notch, nil when the battery option is off or nothing is known yet.
     private var batteryLevel: Int? {
-        guard state.headphonesBattery else { return nil }
+        guard state.headphonesBattery, state.headphonesEnabled else { return nil }
         return BatteryDisplay.level(single: model.batteryLevel, dual: model.hasDualBattery,
                                     left: model.batteryLeft, right: model.batteryRight)
     }
@@ -186,9 +187,12 @@ struct NotchView: View {
         // neither drawn, clickable nor read by VoiceOver.
         ZStack(alignment: .top) {
             page(.music) {
-                MusicTab(music: music, scrolledVolume: state.scrolledVolume, showHeadphones: { selectTab(.headphones) })
+                MusicTab(music: music, scrolledVolume: state.scrolledVolume,
+                         showHeadphones: state.headphonesEnabled ? { selectTab(.headphones) } : nil)
             }
-            page(.headphones) { HeadphonesTab(model: model, back: { selectTab(.music) }) }
+            if state.headphonesEnabled {
+                page(.headphones) { HeadphonesTab(model: model, back: { selectTab(.music) }) }
+            }
         }
         .padding(.top, 8 * state.contentScale)
         .padding(.horizontal, Self.openFlare + 16 * state.contentScale)

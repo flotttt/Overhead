@@ -226,6 +226,21 @@ do {
           "Bluetooth denied or restricted")
 }
 
+// UsageMode: what each way of using SonyNotch turns on.
+do {
+    check(UsageMode.notchOnly.usesNotch && !UsageMode.notchOnly.usesHeadphones, "notch only: no headphones")
+    check(!UsageMode.headphonesOnly.usesNotch && UsageMode.headphonesOnly.usesHeadphones, "headphones only: no notch")
+    check(UsageMode.both.usesNotch && UsageMode.both.usesHeadphones, "both")
+    check(UsageMode(stored: nil) == .both && UsageMode(stored: "nonsense") == .both, "missing or unknown: both")
+    check(UsageMode(stored: UsageMode.notchOnly.rawValue) == .notchOnly, "stored value read back")
+    check(NotchContent.restingState(hasMusic: false, headphonesConnected: true, mode: .notchOnly) == .empty,
+          "notch only ignores connected headphones")
+    check(NotchContent.restingState(hasMusic: true, headphonesConnected: true, mode: .notchOnly) == .musicOnly,
+          "notch only: music without the headphones side")
+    check(NotchContent.restingState(hasMusic: true, headphonesConnected: true, mode: .both) == .musicAndHeadphones,
+          "both: unchanged")
+}
+
 // PlaybackClock: live position from the last known one; display format.
 do {
     let t0 = Date(timeIntervalSince1970: 1_000)

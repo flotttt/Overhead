@@ -21,24 +21,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItemController?.onOpenSetup = { [weak self] in self?.setupWindow?.show() }
         if !settings.setupDone { setupWindow?.show() }
 
-        // Spotify is only read while the notch is on. $showNotch emits the current value first.
-        settings.$showNotch
+        // Spotify is only read while the notch is on and used. Both publishers emit their current value first.
+        settings.$showNotch.combineLatest(settings.$usageMode)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] show in
-                if show { self?.music.start() } else { self?.music.stop() }
+            .sink { [weak self] show, mode in
+                if show && mode.usesNotch { self?.music.start() } else { self?.music.stop() }
             }
             .store(in: &cancellables)
 
         deviceWatcher.onConnect = { [weak self] address, name in
+            guard self?.settings.usageMode.usesHeadphones == true else { return }
             self?.model.headsetConnectedToMac(address: address, name: name)
         }
         deviceWatcher.onDisconnect = { [weak self] address in
             self?.model.headsetDisconnectedFromMac(address: address)
         }
-        deviceWatcher.start()
-
-        if settings.autoConnect { model.autoConnectOnLaunch() }
+        // In notch-only mode Bluetooth is never touched (so macOS never asks for it). Switching to a mode with
+        // the headphones starts it; leaving it drops the link.
+        settings.$usageMode
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] mode in self?.applyHeadphones(mode.usesHeadphones) }
+            .store(in: &cancellables)
         updates.start()
+    }
+
+    private var headphonesStarted = false
+
+    private func applyHeadphones(_ used: Bool) {
+        if used {
+            guard !headphonesStarted else { return }
+            headphonesStarted = true
+            deviceWatcher.start()
+            if settings.autoConnect { model.autoConnectOnLaunch() }
+        } else if model.connectionState != .disconnected {
+            model.disconnect()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
