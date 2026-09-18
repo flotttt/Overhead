@@ -9,6 +9,7 @@ final class AppSettings: ObservableObject {
         static let lastDeviceAddress = "lastDeviceAddress"
         static let showNotch = "showNotch"
         static let setupDone = "setupDone"
+        static let usageMode = "usageMode"
         static let notchWidth = "notchOpenWidth"
         static let notchHeight = "notchOpenHeight"
         static let notchSide = "notchSideWidth"
@@ -42,6 +43,8 @@ final class AppSettings: ObservableObject {
         get { defaults.bool(forKey: Keys.setupDone) }
         set { defaults.set(newValue, forKey: Keys.setupDone) }
     }
+    // Notch only, headphones only, or both (setup window).
+    @Published var usageMode: UsageMode { didSet { defaults.set(usageMode.rawValue, forKey: Keys.usageMode) } }
     @Published var showNotch: Bool {
         didSet { defaults.set(showNotch, forKey: Keys.showNotch) }
     }
@@ -107,6 +110,7 @@ final class AppSettings: ObservableObject {
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
         autoReconnect = defaults.bool(forKey: Keys.autoReconnect)
         showNotch = defaults.bool(forKey: Keys.showNotch)
+        usageMode = UsageMode(stored: defaults.string(forKey: Keys.usageMode))
         notchWidth = defaults.double(forKey: Keys.notchWidth)
         notchHeight = defaults.double(forKey: Keys.notchHeight)
         notchSideWidth = defaults.double(forKey: Keys.notchSide)

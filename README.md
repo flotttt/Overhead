@@ -27,9 +27,14 @@ That's it. Open SonyNotch from your Applications folder.
 
 ### First launch
 
-SonyNotch appears in the menu bar and opens its setup window. It checks everything SonyNotch needs, with a
-button for each: Bluetooth access, your headphones, permission to control Spotify (for the notch player) and
-launch at login. Pair your headphones in System Settings › Bluetooth first if they aren't yet.
+SonyNotch appears in the menu bar and opens its setup window. First choose how you want to use it:
+
+- **Notch**: Spotify in the notch, no Sony headphones needed. Bluetooth is never used.
+- **Headphones**: your Sony headphones' settings in the menu bar, without the notch.
+- **Both**: the notch and the headphones together.
+
+The window then checks what that choice needs, with a button for each: Bluetooth access, your headphones,
+permission to control Spotify and launch at login. Pair your headphones in System Settings › Bluetooth first if they aren't yet.
 
 If something stops working later, open the same window with Setup… in the menu: every line can be fixed or
 redone from there.

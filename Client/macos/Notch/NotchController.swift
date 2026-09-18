@@ -77,9 +77,13 @@ final class NotchController {
             .sink { [weak self] _ in self?.relayout() }
             .store(in: &cancellables)
         // receive(on:) hops after @Published stored the new value, so the sinks read current state.
-        settings.$showNotch
+        settings.$showNotch.combineLatest(settings.$usageMode)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.relayout() }
+            .sink { [weak self] _, mode in
+                self?.state.headphonesEnabled = mode.usesHeadphones
+                if !mode.usesHeadphones { self?.select(.music) }
+                self?.relayout()
+            }
             .store(in: &cancellables)
         // A size slider shows what it changes: the open notch for its width, height and text size, the closed
         // notch for the closed width.
@@ -135,7 +139,7 @@ final class NotchController {
     // MARK: - Placement
 
     private func relayout() {
-        guard settings.showNotch, let screen = Self.preferredScreen() else {
+        guard settings.showNotch, settings.usageMode.usesNotch, let screen = Self.preferredScreen() else {
             geometry = nil
             if state.isOpen {
                 state.isOpen = false
@@ -173,7 +177,8 @@ final class NotchController {
 
     private func updateResting() {
         guard let geometry = geometry else { return }
-        let resting = NotchContent.restingState(hasMusic: music.hasMusic, headphonesConnected: model.connected)
+        let resting = NotchContent.restingState(hasMusic: music.hasMusic, headphonesConnected: model.connected,
+                                                mode: settings.usageMode)
         let frame = geometry.restingFrame(for: resting)
         if state.resting != resting || (frame != nil && state.restingSize != frame?.size) {
             withAnimation(state.isOpen ? NotchMotion.open : NotchMotion.close) {
@@ -249,7 +254,10 @@ final class NotchController {
     private func open() {
         unmountWork?.cancel()
         hideWork?.cancel()
-        if !state.openContentMounted { state.tab = NotchContent.tabOnOpen(lastChosen: lastChosenTab, hasMusic: music.hasMusic) }
+        if !state.openContentMounted {
+            let tab = NotchContent.tabOnOpen(lastChosen: lastChosenTab, hasMusic: music.hasMusic)
+            state.tab = settings.usageMode.usesHeadphones ? tab : .music
+        }
         state.openContentMounted = true
         state.trailingHovered = false
         panel.ignoresMouseEvents = false

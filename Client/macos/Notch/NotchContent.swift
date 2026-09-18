@@ -16,6 +16,11 @@ enum NotchContent {
     static let openDelay: TimeInterval = 0.15  // hover time before opening
     static let closeDelay: TimeInterval = 0.4  // time after the pointer leaves before closing
 
+    // In notch-only mode, connected headphones are ignored.
+    static func restingState(hasMusic: Bool, headphonesConnected: Bool, mode: UsageMode) -> NotchRestingState {
+        restingState(hasMusic: hasMusic, headphonesConnected: headphonesConnected && mode.usesHeadphones)
+    }
+
     static func restingState(hasMusic: Bool, headphonesConnected: Bool) -> NotchRestingState {
         switch (hasMusic, headphonesConnected) {
         case (true, true): return .musicAndHeadphones

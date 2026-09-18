@@ -34,7 +34,9 @@ final class SetupChecks: ObservableObject {
     }
 
     func refresh() {
-        bluetooth = SetupAccess.bluetooth(rawAuthorization: CBCentralManager.authorization.rawValue)
+        let bluetoothAccess = SetupAccess.bluetooth(rawAuthorization: CBCentralManager.authorization.rawValue)
+        if bluetoothAccess != bluetooth { fputs("[setup] Bluetooth: \(bluetoothAccess)\n", stderr) }
+        bluetooth = bluetoothAccess
         spotifyRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: Self.spotifyID).isEmpty
         guard spotifyRunning else {
             spotify = .unavailable
@@ -45,7 +47,9 @@ final class SetupChecks: ObservableObject {
             let status = Self.spotifyPermission(ask: false)
             DispatchQueue.main.async {
                 guard let self = self, !self.askingSpotify else { return }
-                self.spotify = SetupAccess.spotify(status: status)
+                let access = SetupAccess.spotify(status: status)
+                if access != self.spotify { fputs("[setup] Spotify control: \(access) (\(status))\n", stderr) }
+                self.spotify = access
             }
         }
     }

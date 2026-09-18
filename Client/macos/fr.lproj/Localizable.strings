@@ -129,3 +129,9 @@
 "Ask Again" = "Redemander";
 "Control was refused. Ask Again shows macOS's question once more." = "Le contrôle a été refusé. Redemander affiche de nouveau la question de macOS.";
 "You can open this window again with Setup… in the SonyNotch menu." = "Vous pourrez rouvrir cette fenêtre avec Configuration… dans le menu de SonyNotch.";
+"How do you want to use SonyNotch?" = "Comment voulez-vous utiliser SonyNotch ?";
+"Notch" = "Encoche";
+"Spotify in the notch, no headphones needed." = "Spotify dans l’encoche, sans casque.";
+"Your Sony headphones' settings in the menu bar." = "Les réglages de votre casque Sony dans la barre des menus.";
+"Both" = "Les deux";
+"The notch and the headphones together." = "L’encoche et le casque ensemble.";

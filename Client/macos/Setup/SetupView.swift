@@ -20,13 +20,27 @@ struct SetupView: View {
                 }
             }
 
+            Text(tr("How do you want to use SonyNotch?")).font(.headline)
+            HStack(spacing: 10) {
+                ModeCard(mode: .notchOnly, icon: "music.note", title: tr("Notch"),
+                         detail: tr("Spotify in the notch, no headphones needed."), selection: $settings.usageMode)
+                ModeCard(mode: .headphonesOnly, icon: "headphones", title: tr("Headphones"),
+                         detail: tr("Your Sony headphones' settings in the menu bar."), selection: $settings.usageMode)
+                ModeCard(mode: .both, icon: "sparkles", title: tr("Both"),
+                         detail: tr("The notch and the headphones together."), selection: $settings.usageMode)
+            }
+
             VStack(spacing: 0) {
-                bluetoothRow
-                Divider()
-                headphonesRow
-                Divider()
-                spotifyRow
-                Divider()
+                if settings.usageMode.usesHeadphones {
+                    bluetoothRow
+                    Divider()
+                    headphonesRow
+                    Divider()
+                }
+                if settings.usageMode.usesNotch {
+                    spotifyRow
+                    Divider()
+                }
                 SetupRow(icon: "power", title: tr("Launch at Login"),
                          detail: tr("Start SonyNotch when you log in to your Mac."),
                          done: settings.launchAtLogin) {
@@ -49,7 +63,8 @@ struct SetupView: View {
             }
         }
         .padding(24)
-        .frame(width: 520)
+        .frame(width: 560)
+        .animation(.easeInOut(duration: 0.2), value: settings.usageMode)
     }
 
     private var bluetoothRow: some View {
@@ -99,16 +114,16 @@ struct SetupView: View {
 
     private var spotifyRow: some View {
         SetupRow(icon: "music.note", title: tr("Spotify"), detail: spotifyDetail,
-                 done: checks.spotify == .granted, optional: true) {
+                 done: checks.spotify == .granted, optional: settings.usageMode.usesHeadphones) {
             if !checks.spotifyRunning {
                 Button(tr("Open Spotify")) { checks.launchSpotify() }
             } else if checks.askingSpotify {
                 ProgressView().controlSize(.small)
             } else {
                 switch checks.spotify {
-                case .notDetermined: Button(tr("Allow")) { checks.requestSpotify() }
+                case .granted: Button(tr("Settings")) { checks.openAutomationSettings() }
                 case .denied: Button(tr("Ask Again")) { checks.askSpotifyAgain() }
-                default: Button(tr("Settings")) { checks.openAutomationSettings() }
+                default: Button(tr("Allow")) { checks.requestSpotify() }  // not asked yet, or macOS can't tell
                 }
             }
         }
@@ -122,6 +137,40 @@ struct SetupView: View {
         case .denied: return tr("Control was refused. Ask Again shows macOS's question once more.")
         default: return tr("Allow SonyNotch to show and control the music playing in Spotify.")
         }
+    }
+}
+
+// One way of using SonyNotch, picked by clicking the card.
+private struct ModeCard: View {
+    let mode: UsageMode
+    let icon: String
+    let title: String
+    let detail: String
+    @Binding var selection: UsageMode
+
+    var body: some View {
+        let selected = selection == mode
+        Button { selection = mode } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Image(systemName: icon).font(.system(size: 18)).foregroundColor(.accentColor)
+                    Spacer()
+                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                        .foregroundColor(selected ? .accentColor : Color(nsColor: .tertiaryLabelColor))
+                }
+                Text(title).fontWeight(.semibold)
+                Text(detail).font(.caption).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
+            .overlay(RoundedRectangle(cornerRadius: 10)
+                        .stroke(selected ? Color.accentColor : Color(nsColor: .separatorColor), lineWidth: selected ? 2 : 1))
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 

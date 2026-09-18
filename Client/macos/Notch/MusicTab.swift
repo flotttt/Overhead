@@ -7,7 +7,7 @@ struct MusicTab: View {
     private static let volumeAutoHide: TimeInterval = 4
 
     @ObservedObject var music: MusicController
-    let showHeadphones: () -> Void
+    let showHeadphones: (() -> Void)?  // nil in notch-only mode: no headphones button
     let scrolledVolume: Int?  // volume being set by scrolling over the notch
     @Environment(\.notchScale) private var s
     @State private var seekValue: Double?    // while dragging the progress bar
@@ -16,7 +16,7 @@ struct MusicTab: View {
     @State private var volumeHideWork: DispatchWorkItem?
 
     // Explicit: the private @State properties would otherwise make the memberwise init private.
-    init(music: MusicController, scrolledVolume: Int?, showHeadphones: @escaping () -> Void) {
+    init(music: MusicController, scrolledVolume: Int?, showHeadphones: (() -> Void)?) {
         _music = ObservedObject(wrappedValue: music)
         self.scrolledVolume = scrolledVolume
         self.showHeadphones = showHeadphones
@@ -54,9 +54,11 @@ struct MusicTab: View {
                 NotchPillButton(title: button, action: action)
             }
             Spacer(minLength: 0)
-            HStack {
-                iconButton("headphones", label: tr("Headphones"), action: showHeadphones)
-                Spacer()
+            if let showHeadphones = showHeadphones {
+                HStack {
+                    iconButton("headphones", label: tr("Headphones"), action: showHeadphones)
+                    Spacer()
+                }
             }
         }
         .frame(maxWidth: .infinity)
@@ -109,8 +111,12 @@ struct MusicTab: View {
             Spacer(minLength: 6 * s)
             // The side buttons take equal flexible widths, so previous / play / next stay centred on the notch.
             HStack(spacing: 0) {
-                iconButton("headphones", label: tr("Headphones"), action: showHeadphones)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Group {
+                    if let showHeadphones = showHeadphones {
+                        iconButton("headphones", label: tr("Headphones"), action: showHeadphones)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 HStack(spacing: 22 * s) {
                     iconButton("backward.fill", size: 17, color: .white, label: tr("Previous track")) { music.previous() }
                     iconButton(track.isPlaying ? "pause.fill" : "play.fill", size: 21, color: .white,

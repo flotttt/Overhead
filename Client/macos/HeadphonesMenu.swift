@@ -2,8 +2,9 @@ import AppKit
 import Combine
 import SwiftUI
 
-// The status item's menu. Built once; update() refreshes states, visibility and values in place,
-// including while the menu is open.
+// The status item's menu. Built for the usage mode (rebuilt when it changes); update() refreshes states,
+// visibility and values in place, including while the menu is open. Notch only: the notch settings and the app
+// items. Headphones only: the headphones menu without the notch settings. Both: everything.
 final class HeadphonesMenu {
     let menu = NSMenu()
     private let model: HeadphonesModel
@@ -11,21 +12,21 @@ final class HeadphonesMenu {
     private let updates: UpdateChecker
     private var cancellables = Set<AnyCancellable>()
 
-    private let errorItem = NSMenuItem()
+    private var errorItem = NSMenuItem()
     private var modeItems: [(SHCAmbientMode, NSMenuItem)] = []
     private var ambientRows: [NSMenuItem] = []            // level slider + focus on voice
-    private let equalizerItem = NSMenuItem()
+    private var equalizerItem = NSMenuItem()
     private var equalizerRowItem = NSMenuItem()
     private var presetItems: [(Int, NSMenuItem)] = []
-    private let equalizerNoteItem = NSMenuItem()
+    private var equalizerNoteItem = NSMenuItem()
     private var equalizerResetItem = NSMenuItem()
     private var dseeItem = NSMenuItem()
     private var speakToChatItem = NSMenuItem()
     private var adaptiveVolumeItem = NSMenuItem()
-    private let autoPowerOffItem = NSMenuItem()
+    private var autoPowerOffItem = NSMenuItem()
     private var autoPowerOffItems: [NSMenuItem] = []
-    private let aboutItem = NSMenuItem()
-    private let aboutMenu = NSMenu()
+    private var aboutItem = NSMenuItem()
+    private var aboutMenu = NSMenu()
     private var aboutValues: [String] = []  // cache to avoid rebuilding About menu on every slider drag
     private var connectItem = NSMenuItem()
     private var launchAtLoginItem = NSMenuItem()
@@ -35,10 +36,10 @@ final class HeadphonesMenu {
     private var artworkGlowItem = NSMenuItem()
     private var progressRingItem = NSMenuItem()
     private var headphonesBatteryItem = NSMenuItem()
-    private let glowItem = NSMenuItem()
-    private let notchSizeItem = NSMenuItem()
+    private var glowItem = NSMenuItem()
+    private var notchSizeItem = NSMenuItem()
     private var updateItem = NSMenuItem()
-    private let gesturesItem = NSMenuItem()
+    private var gesturesItem = NSMenuItem()
     private var gestureItems: [(NSMenuItem, ReferenceWritableKeyPath<AppSettings, Bool>)] = []
     private let notchSizeMenuDelegate = NotchSizeMenuDelegate()
     var onOpenSetup: (() -> Void)?  // "Setup…": the setup assistant
@@ -75,15 +76,12 @@ final class HeadphonesMenu {
         menu.autoenablesItems = false
         menu.minimumWidth = MenuMetrics.width
 
-        menu.addItem(hostingMenuItem { HeaderRow(model: model) })
-        errorItem.isEnabled = false
-        menu.addItem(errorItem)
-        menu.addItem(.separator())
-        addAmbientSection()
-        menu.addItem(.separator())
-        addSoundSection()
-        menu.addItem(.separator())
-        addAppSection()
+        build()
+        settings.$usageMode
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.build() }
+            .store(in: &cancellables)
 
         // objectWillChange fires before the new value is stored; hopping to the main queue reads the new state.
         model.objectWillChange
@@ -102,6 +100,68 @@ final class HeadphonesMenu {
     }
 
     // MARK: - Building
+
+    private func build() {
+        menu.removeAllItems()
+        for item in [errorItem, equalizerItem, equalizerNoteItem, autoPowerOffItem, aboutItem, glowItem, notchSizeItem,
+                     gesturesItem] {
+            item.menu?.removeItem(item)
+        }
+        errorItem = NSMenuItem()
+        equalizerItem = NSMenuItem()
+        equalizerNoteItem = NSMenuItem()
+        autoPowerOffItem = NSMenuItem()
+        aboutItem = NSMenuItem()
+        aboutMenu = NSMenu()
+        aboutValues = []
+        glowItem = NSMenuItem()
+        notchSizeItem = NSMenuItem()
+        gesturesItem = NSMenuItem()
+        modeItems = []
+        ambientRows = []
+        presetItems = []
+        autoPowerOffItems = []
+        gestureItems = []
+        sliderRowBuilders = [:]
+
+        let mode = settings.usageMode
+        if mode.usesHeadphones {
+            menu.addItem(hostingMenuItem { HeaderRow(model: model) })
+        } else {
+            menu.addItem(sectionHeader("SonyNotch"))
+        }
+        errorItem.isEnabled = false
+        menu.addItem(errorItem)
+        menu.addItem(.separator())
+        if mode.usesHeadphones {
+            addAmbientSection()
+            menu.addItem(.separator())
+            addSoundSection()
+            menu.addItem(.separator())
+        } else {
+            addNotchItems(to: menu)
+            menu.addItem(.separator())
+        }
+        addAppSection(mode)
+        update()
+    }
+
+    // The notch settings: in the Options submenu with headphones, at the top of the menu in notch-only mode.
+    private func addNotchItems(to target: NSMenu) {
+        showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
+        target.addItem(showNotchItem)
+        progressRingItem = ActionMenuItem(tr("Progress Ring")) { [weak settings] in settings?.progressRing.toggle() }
+        target.addItem(progressRingItem)
+        if settings.usageMode.usesHeadphones {
+            headphonesBatteryItem = ActionMenuItem(tr("Headphones Battery")) { [weak settings] in
+                settings?.headphonesBattery.toggle()
+            }
+            target.addItem(headphonesBatteryItem)
+        }
+        target.addItem(makeGlowItem())
+        target.addItem(makeNotchSizeItem())
+        target.addItem(makeGesturesItem())
+    }
 
     private func addAmbientSection() {
         menu.addItem(sectionHeader(tr("Ambient Sound Control")))
@@ -168,31 +228,30 @@ final class HeadphonesMenu {
         menu.addItem(autoPowerOffItem)
     }
 
-    private func addAppSection() {
-        aboutItem.title = tr("About the Headphones")
-        aboutMenu.autoenablesItems = false
-        aboutItem.submenu = aboutMenu
-        menu.addItem(aboutItem)
-        let optionsMenu = NSMenu()
-        optionsMenu.autoenablesItems = false
+    private func addAppSection(_ mode: UsageMode) {
+        if mode.usesHeadphones {
+            aboutItem.title = tr("About the Headphones")
+            aboutMenu.autoenablesItems = false
+            aboutItem.submenu = aboutMenu
+            menu.addItem(aboutItem)
+            let optionsMenu = NSMenu()
+            optionsMenu.autoenablesItems = false
+            autoConnectItem = ActionMenuItem(tr("Connect Automatically")) { [weak settings] in settings?.autoConnect.toggle() }
+            autoReconnectItem = ActionMenuItem(tr("Reconnect Automatically")) { [weak settings] in settings?.autoReconnect.toggle() }
+            optionsMenu.addItem(autoConnectItem)
+            optionsMenu.addItem(autoReconnectItem)
+            if mode.usesNotch {
+                optionsMenu.addItem(.separator())
+                addNotchItems(to: optionsMenu)
+            }
+            let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
+            optionsItem.submenu = optionsMenu
+            menu.addItem(optionsItem)
+            connectItem = ActionMenuItem(tr("Connect…")) { [weak self] in self?.toggleConnection() }
+            menu.addItem(connectItem)
+            menu.addItem(.separator())
+        }
         launchAtLoginItem = ActionMenuItem(tr("Launch at Login")) { [weak self] in self?.toggleLaunchAtLogin() }
-        autoConnectItem = ActionMenuItem(tr("Connect Automatically")) { [weak settings] in settings?.autoConnect.toggle() }
-        autoReconnectItem = ActionMenuItem(tr("Reconnect Automatically")) { [weak settings] in settings?.autoReconnect.toggle() }
-        showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
-        for item in [autoConnectItem, autoReconnectItem, showNotchItem] { optionsMenu.addItem(item) }
-        progressRingItem = ActionMenuItem(tr("Progress Ring")) { [weak settings] in settings?.progressRing.toggle() }
-        optionsMenu.addItem(progressRingItem)
-        headphonesBatteryItem = ActionMenuItem(tr("Headphones Battery")) { [weak settings] in settings?.headphonesBattery.toggle() }
-        optionsMenu.addItem(headphonesBatteryItem)
-        optionsMenu.addItem(makeGlowItem())
-        optionsMenu.addItem(makeNotchSizeItem())
-        optionsMenu.addItem(makeGesturesItem())
-        let optionsItem = NSMenuItem(title: tr("SonyNotch Options"), action: nil, keyEquivalent: "")
-        optionsItem.submenu = optionsMenu
-        menu.addItem(optionsItem)
-        connectItem = ActionMenuItem(tr("Connect…")) { [weak self] in self?.toggleConnection() }
-        menu.addItem(connectItem)
-        menu.addItem(.separator())
         menu.addItem(launchAtLoginItem)
         menu.addItem(ActionMenuItem(tr("Setup…")) { [weak self] in self?.onOpenSetup?() })
         updateItem = ActionMenuItem("") { [weak updates] in updates?.install() }
@@ -263,10 +322,11 @@ final class HeadphonesMenu {
         gesturesItem.isEnabled = settings.showNotch
         for (item, keyPath) in gestureItems {
             item.state = settings[keyPath: keyPath] ? .on : .off
+            // Reversing a gesture that is off means nothing. (Matched by setting, not position: the gestures
+            // submenu doesn't exist in headphones-only mode.)
+            if keyPath == \.reverseSwipe { item.isEnabled = settings.swipeToSkip }
+            if keyPath == \.reverseScroll { item.isEnabled = settings.scrollForVolume }
         }
-        // Reversing a gesture that is off means nothing.
-        gestureItems[2].0.isEnabled = settings.swipeToSkip
-        gestureItems[3].0.isEnabled = settings.scrollForVolume
         // Always shown: greyed out while this is the latest version.
         if let release = updates.available {
             let version = release.tag.hasPrefix("v") ? String(release.tag.dropFirst()) : release.tag
