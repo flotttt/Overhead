@@ -8,6 +8,8 @@ Overhead switches noise cancelling and ambient sound, sets the equalizer and sho
 Bluetooth headphones. It also turns the MacBook notch into a small player for the music playing in Spotify,
 Apple Music, and (experimental) Deezer, YouTube Music or your browser.
 
+<p align="center"><img src=".github/media/notch-open.gif" width="640" alt="The notch opening into a music player, then closing"></p>
+
 ## Install
 
 ### With Homebrew
@@ -66,6 +68,8 @@ Overhead and move it to the Trash.
 
 ### Menu bar
 
+<p align="center"><img src=".github/media/menu.png" width="369" alt="The Overhead menu: sound mode, ambient level, equalizer and headphone settings"></p>
+
 Click the headphones icon in the menu bar to:
 
 - switch between Noise Cancelling, Ambient Sound and Off, and set the ambient level and Focus on Voice
@@ -89,6 +93,11 @@ Move the pointer over the notch and it opens into a player with:
 - a headphones button to change the sound mode without opening the menu
 
 Behind the player, a soft glow takes the colour of the artwork.
+
+<p align="center">
+  <img src=".github/media/notch-next.gif" width="400" alt="Skipping to the next track: the artwork flips and the glow changes colour">
+  <img src=".github/media/notch-headphones.gif" width="400" alt="The headphones page in the notch, switching from noise cancelling to ambient sound">
+</p>
 
 When the notch is closed, it shows the album artwork, circled by a ring that fills up as the track plays, and
 little bars that move with the music. Hover the bars to skip to the next track, or to resume the music when it's
