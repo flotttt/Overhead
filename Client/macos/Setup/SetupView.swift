@@ -28,6 +28,9 @@ struct SetupView: View {
             Divider()
             VStack(alignment: .leading, spacing: 18) {
                 header
+                // The steps differ a lot in height; centring what they hold keeps the window still
+                // from one to the next instead of leaving a hole under the short ones.
+                Spacer(minLength: 0)
                 stepContent
                 Spacer(minLength: 0)
                 buttons
@@ -35,7 +38,7 @@ struct SetupView: View {
             .padding(24)
             .frame(width: 560, alignment: .topLeading)
         }
-        .frame(height: 520)
+        .frame(height: 440)
         .onChange(of: settings.usageMode) { mode in flow.setMode(mode) }
         .animation(.easeInOut(duration: 0.2), value: flow.current)
     }

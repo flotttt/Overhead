@@ -18,6 +18,9 @@ struct ModeStepView: View {
                 ModeCard(mode: .both, icon: "sparkles", title: tr("Both"),
                          detail: tr("The notch and the headphones together."), selection: $settings.usageMode)
             }
+            // The cards carry a Spacer to push their text up: without this they would swallow every
+            // spare pixel of the step and stand three times too tall.
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

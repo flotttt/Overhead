@@ -31,17 +31,16 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
         // The window is kept between openings, but the finished setup turns the assistant into a
         // freely navigable review: rebuild the view when that changed.
         if let window, builtRevisiting != settings.setupDone {
-            window.contentView = NSHostingView(rootView: makeView())
+            Self.install(makeView(), in: window)
             builtRevisiting = settings.setupDone
         }
         if window == nil {
             let window = NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = tr("Overhead Setup")
-            window.contentView = NSHostingView(rootView: makeView())
-            builtRevisiting = settings.setupDone
             window.isReleasedWhenClosed = false
             window.delegate = self
-            window.center()
+            Self.install(makeView(), in: window)
+            builtRevisiting = settings.setupDone
             self.window = window
         }
         checks.start()
@@ -51,6 +50,15 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
 
     // Closing early is not finishing: with no menu bar icon there would be no way back to the app,
     // so it quits. The setup starts over at the next launch.
+    // The window is created empty, so centring it before it has its content would only put its corner
+    // in the middle of the screen: size it from the view first, then centre.
+    static func install<Content: View>(_ view: Content, in window: NSWindow) {
+        let host = NSHostingView(rootView: view)
+        window.contentView = host
+        window.setContentSize(host.fittingSize)
+        window.center()
+    }
+
     private func makeView() -> SetupView {
         SetupView(checks: checks, model: model, settings: settings, music: music,
                   revisiting: settings.setupDone,

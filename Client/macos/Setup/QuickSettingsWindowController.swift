@@ -27,10 +27,9 @@ final class QuickSettingsWindowController: NSObject, NSWindowDelegate {
                                          })
             let window = NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = tr("Quick Settings")
-            window.contentView = NSHostingView(rootView: view)
             window.isReleasedWhenClosed = false
             window.delegate = self
-            window.center()
+            SetupWindowController.install(view, in: window)
             self.window = window
         }
         checks.start()
