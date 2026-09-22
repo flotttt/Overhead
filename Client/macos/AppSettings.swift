@@ -39,11 +39,9 @@ final class AppSettings: ObservableObject {
     @Published var autoReconnect: Bool {
         didSet { defaults.set(autoReconnect, forKey: Keys.autoReconnect) }
     }
-    // The setup assistant was closed once: it no longer opens at launch.
-    var setupDone: Bool {
-        get { defaults.bool(forKey: Keys.setupDone) }
-        set { defaults.set(newValue, forKey: Keys.setupDone) }
-    }
+    // The setup assistant was finished once: it no longer opens at launch, and the app may start.
+    // Published: the notch stays away until it flips.
+    @Published var setupDone: Bool { didSet { defaults.set(setupDone, forKey: Keys.setupDone) } }
     // Notch only, headphones only, or both (setup window).
     @Published var usageMode: UsageMode { didSet { defaults.set(usageMode.rawValue, forKey: Keys.usageMode) } }
     @Published var showNotch: Bool {
@@ -113,6 +111,7 @@ final class AppSettings: ObservableObject {
         autoConnect = defaults.bool(forKey: Keys.autoConnect)
         autoReconnect = defaults.bool(forKey: Keys.autoReconnect)
         showNotch = defaults.bool(forKey: Keys.showNotch)
+        setupDone = defaults.bool(forKey: Keys.setupDone)
         usageMode = UsageMode(stored: defaults.string(forKey: Keys.usageMode))
         notchWidth = defaults.double(forKey: Keys.notchWidth)
         notchHeight = defaults.double(forKey: Keys.notchHeight)

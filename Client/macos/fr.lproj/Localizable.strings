@@ -44,7 +44,7 @@
 "Codec" = "Codec";
 "Protocol" = "Protocole";
 "Bluetooth" = "Bluetooth";
-"Overhead Options" = "Options de Overhead";
+"Overhead Options" = "Options d'Overhead";
 "Launch at Login" = "Lancer au démarrage";
 "Connect Automatically" = "Connexion automatique";
 "Reconnect Automatically" = "Reconnexion automatique";
@@ -83,7 +83,7 @@
 "Reset Size" = "Réinitialiser";
 "Closed Artwork" = "Pochette (fermée)";
 "Update to Overhead %@" = "Mettre à jour vers Overhead %@";
-"Updating Overhead…" = "Mise à jour de Overhead…";
+"Updating Overhead…" = "Mise à jour d'Overhead…";
 "Update Failed, Download Overhead %@…" = "Échec de la mise à jour, télécharger Overhead %@…";
 "Overhead Is Up to Date (%@)" = "Overhead est à jour (%@)";
 "Notch Gestures" = "Gestes de l’encoche";
@@ -105,7 +105,7 @@
 "Glow Size" = "Taille";
 "Progress Ring" = "Anneau de progression";
 "Headphones Battery" = "Batterie du casque";
-"Overhead Setup" = "Configuration de Overhead";
+"Overhead Setup" = "Configuration d'Overhead";
 "Welcome to Overhead" = "Bienvenue dans Overhead";
 "A few permissions and your headphones, and you're set." = "Quelques autorisations et votre casque, et c’est prêt.";
 "Start Overhead when you log in to your Mac." = "Ouvrir Overhead au démarrage de votre Mac.";
@@ -137,3 +137,16 @@
 "The notch and the headphones together." = "L’encoche et le casque ensemble.";
 "Other Players (Experimental)" = "Autres lecteurs (expérimental)";
 "Deezer, YouTube Music, your browser… through macOS's Now Playing." = "Deezer, YouTube Music, votre navigateur… via « À l’écoute » de macOS.";
+"Buy Me a Coffee…" = "Offrez-moi un café…";
+"Next" = "Suivant";
+"Start using Overhead" = "Commencer à utiliser Overhead";
+"Mode" = "Mode";
+"Permissions" = "Autorisations";
+"Finish" = "Fin";
+"You're all set." = "Tout est prêt.";
+"Adjust while watching the notch above." = "Réglez en regardant l'encoche au-dessus.";
+"Connect to your headphones when they join the Mac." = "Se connecter au casque quand il rejoint le Mac.";
+"Reconnect if the link drops." = "Se reconnecter si le lien tombe.";
+"Quick Settings" = "Réglages rapides";
+"Quick Settings…" = "Réglages rapides…";
+"Full setup…" = "Configuration complète…";

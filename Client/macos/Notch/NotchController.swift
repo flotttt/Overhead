@@ -17,6 +17,7 @@ final class NotchController {
     private let model: HeadphonesModel
     private let music: MusicController
     private let settings: AppSettings
+    var onOpenSettings: (() -> Void)?   // the gear in the notch's headphones page
     private let state = NotchViewState()
     private let panel = NotchPanel.make()
     private var geometry: NotchGeometry?
@@ -40,7 +41,8 @@ final class NotchController {
 
         let container = NotchContainerView()
         let host = NotchHostingView(rootView: NotchView(state: state, model: model, music: music,
-                                                        selectTab: { [weak self] tab in self?.select(tab) }))
+                                                        selectTab: { [weak self] tab in self?.select(tab) },
+                                                        openSettings: { [weak self] in self?.onOpenSettings?() }))
         host.autoresizingMask = [.width, .height]
         container.addSubview(host)
         container.onHoverChange = { [weak self] in self?.pointerMoved() }
@@ -77,6 +79,10 @@ final class NotchController {
             .sink { [weak self] _ in self?.relayout() }
             .store(in: &cancellables)
         // receive(on:) hops after @Published stored the new value, so the sinks read current state.
+        settings.$setupDone
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.relayout() }
+            .store(in: &cancellables)
         settings.$showNotch.combineLatest(settings.$usageMode)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _, mode in
@@ -139,7 +145,9 @@ final class NotchController {
     // MARK: - Placement
 
     private func relayout() {
-        guard settings.showNotch, settings.usageMode.usesNotch, let screen = Self.preferredScreen() else {
+        // Before the setup is finished the notch stays away; its step in the assistant shows it as a preview.
+        guard settings.showNotch, settings.usageMode.usesNotch, settings.setupDone || settings.notchPreviewing,
+              let screen = Self.preferredScreen() else {
             geometry = nil
             if state.isOpen {
                 state.isOpen = false
@@ -340,6 +348,8 @@ final class NotchController {
     private func setPreviewing(_ on: Bool) {
         previewing = on
         reopenWork?.cancel()
+        // relayout() first: during the setup the notch only exists while previewing.
+        relayout()
         if on {
             if geometry != nil && !state.isOpen { open() }
         } else {

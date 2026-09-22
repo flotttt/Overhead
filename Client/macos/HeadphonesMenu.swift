@@ -147,6 +147,10 @@ final class HeadphonesMenu {
         update()
     }
 
+    var onOpenQuickSettings: (() -> Void)?  // "Réglages rapides…": the short panel
+
+    static let donationURL = "https://ko-fi.com/sunnrockk"
+
     // The notch settings: in the Options submenu with headphones, at the top of the menu in notch-only mode.
     private func addNotchItems(to target: NSMenu) {
         showNotchItem = ActionMenuItem(tr("Show Notch")) { [weak settings] in settings?.showNotch.toggle() }
@@ -259,9 +263,18 @@ final class HeadphonesMenu {
         }
         launchAtLoginItem = ActionMenuItem(tr("Launch at Login")) { [weak self] in self?.toggleLaunchAtLogin() }
         menu.addItem(launchAtLoginItem)
+        menu.addItem(ActionMenuItem(tr("Quick Settings…")) { [weak self] in self?.onOpenQuickSettings?() })
         menu.addItem(ActionMenuItem(tr("Setup…")) { [weak self] in self?.onOpenSetup?() })
         updateItem = ActionMenuItem("") { [weak updates] in updates?.install() }
         menu.addItem(updateItem)
+        menu.addItem(.separator())
+        // Overhead is free and unsigned: the donations pay for the Apple developer account first.
+        let coffeeItem = ActionMenuItem(tr("Buy Me a Coffee…")) {
+            if let url = URL(string: HeadphonesMenu.donationURL) { NSWorkspace.shared.open(url) }
+        }
+        coffeeItem.image = NSImage(systemSymbolName: "cup.and.saucer", accessibilityDescription: nil)
+        menu.addItem(coffeeItem)
+        menu.addItem(.separator())
         menu.addItem(ActionMenuItem(tr("Quit Overhead"), key: "q") { NSApp.terminate(nil) })
     }
 
