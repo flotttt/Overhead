@@ -8,6 +8,9 @@ Overhead switches noise cancelling and ambient sound, sets the equalizer and sho
 Bluetooth headphones. It also turns the MacBook notch into a small player for the music playing in Spotify,
 Apple Music, and (experimental) Deezer, YouTube Music or your browser.
 
+The notch player stands on its own: no Sony headphones, no Bluetooth, no account. Any MacBook with a notch will
+do, and on a screen without one it shows up as a black pill at the top.
+
 <p align="center"><img src=".github/media/notch-open.gif" width="640" alt="The notch opening into a music player, then closing"></p>
 
 ## Install
@@ -20,7 +23,9 @@ If you use [Homebrew](https://brew.sh), run:
 brew install --cask flotttt/tap/overhead
 ```
 
-That's it. Open Overhead from your Applications folder.
+Then open Overhead from your Applications folder. The first time, macOS says it can't check the app, because
+it isn't signed with an Apple developer account yet: click Done, then go to System Settings › Privacy &
+Security, scroll down and click **Open Anyway**. Homebrew doesn't skip that step.
 
 ### Without Homebrew
 
