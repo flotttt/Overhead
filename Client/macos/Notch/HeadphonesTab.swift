@@ -6,6 +6,7 @@ import SwiftUI
 struct HeadphonesTab: View {
     @ObservedObject var model: HeadphonesModel
     let back: () -> Void
+    let openSettings: () -> Void
     @Environment(\.notchScale) private var s
 
     var body: some View {
@@ -25,6 +26,16 @@ struct HeadphonesTab: View {
                     .font(.system(size: 13 * s, weight: .semibold))
                     .foregroundColor(.white)
                     .lineLimit(1)
+                Spacer(minLength: 0)
+                Button(action: openSettings) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 13 * s, weight: .semibold))
+                        .foregroundColor(.gray)
+                        .frame(width: 24 * s, height: 24 * s)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(PressableButtonStyle())
+                .accessibilityLabel(tr("Quick Settings…"))
             }
             switch model.connectionState {
             case .connected:

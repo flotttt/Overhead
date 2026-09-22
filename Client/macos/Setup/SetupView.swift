@@ -91,7 +91,7 @@ struct SetupView: View {
         case .notch:
             NotchStepView(settings: settings, music: music)
         case .headphones:
-            Text(tr("Coming next."))
+            HeadphonesStepView(settings: settings)
         case .done:
             DoneStepView(settings: settings, showError: showError)
         }

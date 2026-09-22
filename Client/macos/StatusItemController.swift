@@ -10,6 +10,10 @@ final class StatusItemController {
         get { headphonesMenu.onOpenSetup }
         set { headphonesMenu.onOpenSetup = newValue }
     }
+    var onOpenQuickSettings: (() -> Void)? {
+        get { headphonesMenu.onOpenQuickSettings }
+        set { headphonesMenu.onOpenQuickSettings = newValue }
+    }
     private var cancellables = Set<AnyCancellable>()
 
     init(model: HeadphonesModel, settings: AppSettings, updates: UpdateChecker) {

@@ -147,6 +147,8 @@ final class HeadphonesMenu {
         update()
     }
 
+    var onOpenQuickSettings: (() -> Void)?  // "Réglages rapides…": the short panel
+
     static let donationURL = "https://ko-fi.com/sunnrockk"
 
     // The notch settings: in the Options submenu with headphones, at the top of the menu in notch-only mode.
@@ -261,6 +263,7 @@ final class HeadphonesMenu {
         }
         launchAtLoginItem = ActionMenuItem(tr("Launch at Login")) { [weak self] in self?.toggleLaunchAtLogin() }
         menu.addItem(launchAtLoginItem)
+        menu.addItem(ActionMenuItem(tr("Quick Settings…")) { [weak self] in self?.onOpenQuickSettings?() })
         menu.addItem(ActionMenuItem(tr("Setup…")) { [weak self] in self?.onOpenSetup?() })
         updateItem = ActionMenuItem("") { [weak updates] in updates?.install() }
         menu.addItem(updateItem)

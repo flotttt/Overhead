@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
     private var notchController: NotchController?
     private var setupWindow: SetupWindowController?
+    private var quickSettings: QuickSettingsWindowController?
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -35,8 +36,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !appStarted else { return }
         appStarted = true
 
+        quickSettings = QuickSettingsWindowController(model: model, settings: settings,
+                                                      onPlayerGranted: { [weak self] in self?.music.refresh() },
+                                                      openFullSetup: { [weak self] in self?.setupWindow?.show() })
         statusItemController = StatusItemController(model: model, settings: settings, updates: updates)
         statusItemController?.onOpenSetup = { [weak self] in self?.setupWindow?.show() }
+        statusItemController?.onOpenQuickSettings = { [weak self] in self?.quickSettings?.show() }
+        notchController?.onOpenSettings = { [weak self] in self?.quickSettings?.show() }
 
         // The music players are only read while the notch is on and used. Both publishers emit their current value first.
         settings.$showNotch.combineLatest(settings.$usageMode)

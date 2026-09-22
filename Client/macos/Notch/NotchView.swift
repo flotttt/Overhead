@@ -62,6 +62,7 @@ struct NotchView: View {
     @ObservedObject var model: HeadphonesModel
     @ObservedObject var music: MusicController
     let selectTab: (NotchTab) -> Void
+    let openSettings: () -> Void
 
     var body: some View {
         let size = state.isOpen ? state.openSize : state.restingSize
@@ -191,7 +192,9 @@ struct NotchView: View {
                          showHeadphones: state.headphonesEnabled ? { selectTab(.headphones) } : nil)
             }
             if state.headphonesEnabled {
-                page(.headphones) { HeadphonesTab(model: model, back: { selectTab(.music) }) }
+                page(.headphones) {
+                    HeadphonesTab(model: model, back: { selectTab(.music) }, openSettings: openSettings)
+                }
             }
         }
         .padding(.top, 8 * state.contentScale)

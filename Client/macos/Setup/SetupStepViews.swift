@@ -201,3 +201,30 @@ struct NotchStepView: View {
         }
     }
 }
+
+// The headphones step: the two settings that decide when Overhead talks to them on its own.
+// Same keys as the menu items, so both stay in sync.
+struct HeadphonesStepView: View {
+    @ObservedObject var settings: AppSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(tr("Headphones")).font(.headline)
+            VStack(spacing: 0) {
+                SetupRow(icon: "link", title: tr("Connect Automatically"),
+                         detail: tr("Connect to your headphones when they join the Mac."),
+                         done: settings.autoConnect) {
+                    Toggle("", isOn: $settings.autoConnect).labelsHidden().toggleStyle(.switch)
+                }
+                Divider()
+                SetupRow(icon: "arrow.clockwise", title: tr("Reconnect Automatically"),
+                         detail: tr("Reconnect if the link drops."),
+                         done: settings.autoReconnect) {
+                    Toggle("", isOn: $settings.autoReconnect).labelsHidden().toggleStyle(.switch)
+                }
+            }
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(nsColor: .separatorColor)))
+        }
+    }
+}

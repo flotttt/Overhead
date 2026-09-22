@@ -17,6 +17,7 @@ final class NotchController {
     private let model: HeadphonesModel
     private let music: MusicController
     private let settings: AppSettings
+    var onOpenSettings: (() -> Void)?   // the gear in the notch's headphones page
     private let state = NotchViewState()
     private let panel = NotchPanel.make()
     private var geometry: NotchGeometry?
@@ -40,7 +41,8 @@ final class NotchController {
 
         let container = NotchContainerView()
         let host = NotchHostingView(rootView: NotchView(state: state, model: model, music: music,
-                                                        selectTab: { [weak self] tab in self?.select(tab) }))
+                                                        selectTab: { [weak self] tab in self?.select(tab) },
+                                                        openSettings: { [weak self] in self?.onOpenSettings?() }))
         host.autoresizingMask = [.width, .height]
         container.addSubview(host)
         container.onHoverChange = { [weak self] in self?.pointerMoved() }
