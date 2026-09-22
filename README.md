@@ -23,9 +23,8 @@ If you use [Homebrew](https://brew.sh), run:
 brew install --cask flotttt/tap/overhead
 ```
 
-Then open Overhead from your Applications folder. The first time, macOS says it can't check the app, because
-it isn't signed with an Apple developer account yet: click Done, then go to System Settings › Privacy &
-Security, scroll down and click **Open Anyway**. Homebrew doesn't skip that step.
+That's it. Open Overhead from your Applications folder. The app isn't signed with an Apple developer account
+yet, but the cask clears the quarantine flag for you, so macOS doesn't get in the way. This is the easy path.
 
 ### Without Homebrew
 
