@@ -4,6 +4,13 @@
 
 Control your Sony headphones from your Mac, right from the menu bar and the notch. No phone app needed.
 
+<p align="center">
+  <a href="https://github.com/flotttt/Overhead/releases/latest"><img src="https://img.shields.io/github/v/release/flotttt/Overhead?color=1f6feb&label=release" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-black?logo=apple&logoColor=white" alt="macOS 13 or later">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
+  <a href="https://ko-fi.com/sunnrockk"><img src="https://img.shields.io/badge/Ko--fi-buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white" alt="Support on Ko-fi"></a>
+</p>
+
 Overhead switches noise cancelling and ambient sound, sets the equalizer and shows the battery of your Sony
 Bluetooth headphones. It also turns the MacBook notch into a small player for the music playing in Spotify,
 Apple Music, and (experimental) Deezer, YouTube Music or your browser.
