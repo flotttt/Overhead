@@ -215,6 +215,12 @@ semvis123 and their contributors. It has since been renamed and largely rewritte
 Overhead isn't affiliated with or endorsed by Sony. It uses a reverse engineered protocol, so use it at your
 own risk.
 
+## Support
+
+Overhead is free and there's no company behind it. If it's useful to you, you can
+[buy me a coffee](https://ko-fi.com/sunnrockk). The first thing that pays for is the Apple developer account,
+so the app can be signed and open without the Open Anyway detour.
+
 ## License
 
 MIT, see [LICENSE](LICENSE). The original copyright notice is kept as the license requires.
