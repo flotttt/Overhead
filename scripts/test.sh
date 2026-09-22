@@ -16,7 +16,7 @@ swiftc -target "$TARGET" -sdk "$SDK" -swift-version 5 \
     "$MAC/UsageMode.swift" \
     "$MAC/Notch/NotchGeometry.swift" "$MAC/Notch/NotchContent.swift" "$MAC/Notch/NotchScrollGesture.swift" \
     "$MAC/Notch/BatteryDisplay.swift" \
-    "$MAC/Setup/SetupAccess.swift" \
+    "$MAC/Setup/SetupAccess.swift" "$MAC/Setup/SetupFlow.swift" \
     "$MAC/Music/NowPlaying.swift" "$MAC/Music/PlaybackClock.swift" "$MAC/Music/SpotifyPlaybackInfo.swift" \
     "$MAC/Music/AppleMusicPlaybackInfo.swift" "$MAC/Music/MusicSourcePicker.swift" "$MAC/Music/NowPlayingInfo.swift" \
     "$MAC/Updates/ReleaseInfo.swift" "$MAC/Updates/AppRename.swift" \

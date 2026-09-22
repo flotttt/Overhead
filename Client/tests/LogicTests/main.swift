@@ -399,6 +399,53 @@ do {
     check(SpotifyPlaybackInfo.parse(scriptResult: "garbage", at: t0) == .incomplete, "script: malformed")
 }
 
+// SetupFlow: les étapes dépendent du mode, et changer de mode ne laisse jamais sur une étape disparue.
+do {
+    check(SetupFlow.steps(for: .notchOnly) == [.mode, .permissions, .notch, .done],
+          "notch only: pas d'étape casque")
+    check(SetupFlow.steps(for: .headphonesOnly) == [.mode, .permissions, .headphones, .done],
+          "casque seul: pas d'étape notch")
+    check(SetupFlow.steps(for: .both) == [.mode, .permissions, .notch, .headphones, .done],
+          "les deux: les cinq étapes")
+
+    var flow = SetupFlow(mode: .both, revisiting: false)
+    check(flow.current == .mode, "on démarre sur le choix du mode")
+    check(flow.isFirstStep && !flow.isLastStep, "première étape")
+    flow.goNext()
+    check(flow.current == .permissions, "suivant depuis mode")
+    flow.goBack()
+    check(flow.current == .mode, "retour depuis permissions")
+    flow.goBack()
+    check(flow.current == .mode, "retour sur la première étape ne bouge pas")
+
+    // Le cas limite: on est sur l'étape casque et on bascule en mode notch seul.
+    var switching = SetupFlow(mode: .both, revisiting: false)
+    switching.goNext(); switching.goNext(); switching.goNext()
+    check(switching.current == .headphones, "on est bien sur l'étape casque")
+    switching.setMode(.notchOnly)
+    check(switching.steps == [.mode, .permissions, .notch, .done], "les étapes suivent le mode")
+    check(switching.current == .done, "repli sur l'étape suivante encore présente")
+
+    // Un mode qui garde l'étape courante ne déplace personne.
+    var staying = SetupFlow(mode: .both, revisiting: false)
+    staying.goNext()
+    staying.setMode(.notchOnly)
+    check(staying.current == .permissions, "l'étape courante survit au changement de mode")
+
+    // Dernière étape: goNext ne sort pas du tableau.
+    var last = SetupFlow(mode: .notchOnly, revisiting: false)
+    for _ in 0..<10 { last.goNext() }
+    check(last.current == .done && last.isLastStep, "goNext s'arrête sur la dernière étape")
+
+    // En révision, on saute où on veut; en onboarding, non.
+    var revisit = SetupFlow(mode: .both, revisiting: true)
+    check(revisit.go(to: .headphones), "révision: saut autorisé")
+    check(revisit.current == .headphones, "révision: on a sauté")
+    var onboarding = SetupFlow(mode: .both, revisiting: false)
+    check(!onboarding.go(to: .headphones), "onboarding: saut refusé")
+    check(onboarding.current == .mode, "onboarding: on n'a pas bougé")
+}
+
 if failures > 0 {
     print("LogicTests: \(failures) failure(s)")
     exit(1)
