@@ -1,147 +1,125 @@
 import SwiftUI
 
-// The setup assistant: one row per thing Overhead needs, each turning green once it's done, with the button
-// that fixes it (or, once it's fine, reopens or redoes it: nothing is ever stuck). Shown at first launch, and from
-// "Setup…" in the menu.
+// The setup assistant. At first launch it walks through its steps in order and nothing else of the app
+// runs until the last one; reopened from "Setup…" it shows the same steps, all reachable directly.
 struct SetupView: View {
     @ObservedObject var checks: SetupChecks
     @ObservedObject var model: HeadphonesModel
     @ObservedObject var settings: AppSettings
     let showError: (String) -> Void
-    let done: () -> Void
+    let finish: () -> Void
+    @State private var flow: SetupFlow
+
+    init(checks: SetupChecks, model: HeadphonesModel, settings: AppSettings, revisiting: Bool,
+         showError: @escaping (String) -> Void, finish: @escaping () -> Void) {
+        self.checks = checks
+        self.model = model
+        self.settings = settings
+        self.showError = showError
+        self.finish = finish
+        _flow = State(initialValue: SetupFlow(mode: settings.usageMode, revisiting: revisiting))
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 12) {
-                Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 48, height: 48)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(tr("Welcome to Overhead")).font(.title2.weight(.semibold))
-                    Text(tr("A few permissions and your headphones, and you're set.")).foregroundColor(.secondary)
+        HStack(spacing: 0) {
+            sidebar
+            Divider()
+            VStack(alignment: .leading, spacing: 18) {
+                header
+                stepContent
+                Spacer(minLength: 0)
+                buttons
+            }
+            .padding(24)
+            .frame(width: 560, alignment: .topLeading)
+        }
+        .frame(height: 520)
+        .onChange(of: settings.usageMode) { mode in flow.setMode(mode) }
+        .animation(.easeInOut(duration: 0.2), value: flow.current)
+    }
+
+    private var sidebar: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(flow.steps, id: \.self) { step in
+                let isCurrent = step == flow.current
+                let label = HStack(spacing: 8) {
+                    Image(systemName: isCurrent ? "circle.inset.filled" : "circle")
+                        .font(.system(size: 9))
+                        .foregroundColor(isCurrent ? .accentColor : Color(nsColor: .tertiaryLabelColor))
+                    Text(Self.title(step)).fontWeight(isCurrent ? .semibold : .regular)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .contentShape(Rectangle())
+
+                if flow.revisiting {
+                    Button { flow.go(to: step) } label: { label }.buttonStyle(.plain)
+                } else {
+                    label.foregroundColor(isCurrent ? .primary : .secondary)
                 }
             }
+            Spacer(minLength: 0)
+        }
+        .frame(width: 160, alignment: .topLeading)
+        .padding(.vertical, 18)
+    }
 
-            Text(tr("How do you want to use Overhead?")).font(.headline)
-            HStack(spacing: 10) {
-                ModeCard(mode: .notchOnly, icon: "music.note", title: tr("Notch"),
-                         detail: tr("Your music in the notch, no headphones needed."), selection: $settings.usageMode)
-                ModeCard(mode: .headphonesOnly, icon: "headphones", title: tr("Headphones"),
-                         detail: tr("Your Sony headphones' settings in the menu bar."), selection: $settings.usageMode)
-                ModeCard(mode: .both, icon: "sparkles", title: tr("Both"),
-                         detail: tr("The notch and the headphones together."), selection: $settings.usageMode)
-            }
-
-            VStack(spacing: 0) {
-                if settings.usageMode.usesHeadphones {
-                    bluetoothRow
-                    Divider()
-                    headphonesRow
-                    Divider()
-                }
-                // Each music app is optional: the notch works with whichever the user plays.
-                if settings.usageMode.usesNotch {
-                    ForEach(ScriptedPlayer.all, id: \.id) { player in
-                        playerRow(player)
-                        Divider()
-                    }
-                }
-                SetupRow(icon: "power", title: tr("Launch at Login"),
-                         detail: tr("Start Overhead when you log in to your Mac."),
-                         done: settings.launchAtLogin) {
-                    Toggle("", isOn: Binding(get: { settings.launchAtLogin }, set: { on in
-                        if let error = settings.setLaunchAtLogin(on) { showError(error) }
-                    }))
-                    .labelsHidden()
-                    .toggleStyle(.switch)
+    private var header: some View {
+        HStack(spacing: 12) {
+            Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 48, height: 48)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(flow.revisiting ? Self.title(flow.current) : tr("Welcome to Overhead"))
+                    .font(.title2.weight(.semibold))
+                if !flow.revisiting {
+                    Text(tr("A few permissions and your headphones, and you're set."))
+                        .foregroundColor(.secondary)
                 }
             }
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(nsColor: .separatorColor)))
+        }
+    }
 
-            HStack {
+    @ViewBuilder
+    private var stepContent: some View {
+        switch flow.current {
+        case .mode:
+            ModeStepView(settings: settings)
+        case .permissions:
+            PermissionsStepView(checks: checks, model: model, settings: settings)
+        case .notch, .headphones:
+            Text(tr("Coming next."))
+        case .done:
+            DoneStepView(settings: settings, showError: showError)
+        }
+    }
+
+    private var buttons: some View {
+        HStack {
+            if flow.revisiting {
                 Text(tr("You can open this window again with Setup… in the Overhead menu."))
                     .font(.footnote)
                     .foregroundColor(.secondary)
                 Spacer()
-                Button(tr("Done"), action: done).keyboardShortcut(.defaultAction)
-            }
-        }
-        .padding(24)
-        .frame(width: 560)
-        .animation(.easeInOut(duration: 0.2), value: settings.usageMode)
-    }
-
-    private var bluetoothRow: some View {
-        SetupRow(icon: "antenna.radiowaves.left.and.right", title: tr("Bluetooth"),
-                 detail: bluetoothDetail, done: checks.bluetooth == .granted) {
-            // Always something to click: macOS only asks once, afterwards the switch is in System Settings.
-            if checks.bluetooth == .notDetermined {
-                Button(tr("Allow")) { checks.requestBluetooth() }
+                Button(tr("Done"), action: finish).keyboardShortcut(.defaultAction)
             } else {
-                Button(tr("Settings")) { checks.openBluetoothSettings() }
-            }
-        }
-    }
-
-    private var bluetoothDetail: String {
-        switch checks.bluetooth {
-        case .granted: return tr("Overhead can talk to your headphones.")
-        case .denied: return tr("Bluetooth access was refused. Turn Overhead on in Privacy & Security › Bluetooth.")
-        default: return tr("Needed to talk to your headphones.")
-        }
-    }
-
-    private var headphonesRow: some View {
-        SetupRow(icon: "headphones", title: tr("Headphones"), detail: headphonesDetail, done: model.connected) {
-            switch model.connectionState {
-            case .disconnected:
-                Button(tr("Connect…")) {
-                    NSApp.activate(ignoringOtherApps: true)
-                    model.connect()
-                }
-                .disabled(checks.bluetooth == .denied)
-            case .connecting:
-                ProgressView().controlSize(.small)
-            case .connected:
-                Button(tr("Reconnect")) { model.reconnect() }
-            }
-        }
-    }
-
-    private var headphonesDetail: String {
-        switch model.connectionState {
-        case .connected: return model.deviceName.isEmpty ? tr("Connected.") : model.deviceName
-        case .connecting: return tr("Connecting…")
-        case .disconnected: return tr("Pair your Sony headphones in System Settings › Bluetooth, then connect them here.")
-        }
-    }
-
-    private func playerRow(_ player: ScriptedPlayer) -> some View {
-        let check = checks.check(player)
-        return SetupRow(icon: "music.note", title: player.name, detail: playerDetail(player, check),
-                        done: check.access == .granted, optional: true) {
-            if !check.running {
-                Button(String(format: tr("Open %@"), player.name)) { checks.launch(player) }
-            } else if check.asking {
-                ProgressView().controlSize(.small)
-            } else {
-                switch check.access {
-                case .granted: Button(tr("Settings")) { checks.openAutomationSettings() }
-                case .denied: Button(tr("Ask Again")) { checks.askAgain(player) }
-                default: Button(tr("Allow")) { checks.request(player) }  // not asked yet, or macOS can't tell
+                Button(tr("Back")) { flow.goBack() }.disabled(flow.isFirstStep)
+                Spacer()
+                if flow.isLastStep {
+                    Button(tr("Start using Overhead"), action: finish).keyboardShortcut(.defaultAction)
+                } else {
+                    Button(tr("Next")) { flow.goNext() }.keyboardShortcut(.defaultAction)
                 }
             }
         }
     }
 
-    private func playerDetail(_ player: ScriptedPlayer, _ check: PlayerCheck) -> String {
-        if !check.running {
-            return String(format: tr("For the notch player. Open %@ to allow Overhead to control it."), player.name)
-        }
-        if check.asking { return tr("Answer macOS's question: click Allow.") }
-        switch check.access {
-        case .granted: return tr("Overhead can show and control your music.")
-        case .denied: return tr("Control was refused. Ask Again shows macOS's question once more.")
-        default: return String(format: tr("Allow Overhead to show and control the music playing in %@."), player.name)
+    private static func title(_ step: SetupStep) -> String {
+        switch step {
+        case .mode: return tr("Mode")
+        case .permissions: return tr("Permissions")
+        case .notch: return tr("Notch")
+        case .headphones: return tr("Headphones")
+        case .done: return tr("Finish")
         }
     }
 }

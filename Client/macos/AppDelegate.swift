@@ -14,12 +14,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         model.settings = settings
-        statusItemController = StatusItemController(model: model, settings: settings, updates: updates)
+        // The notch is always built but only shows itself when the settings say so: on its own it
+        // touches neither Bluetooth nor the music players.
         notchController = NotchController(model: model, music: music, settings: settings)
         setupWindow = SetupWindowController(model: model, settings: settings,
-                                            onPlayerGranted: { [weak self] in self?.music.refresh() })
+                                            onPlayerGranted: { [weak self] in self?.music.refresh() },
+                                            onFinished: { [weak self] in self?.startApp() })
+        if settings.setupDone {
+            startApp()
+        } else {
+            // Nothing else starts: no menu bar icon, no Bluetooth, no update check, until the
+            // setup is finished. The final button calls startApp().
+            setupWindow?.show()
+        }
+    }
+
+    private var appStarted = false
+
+    private func startApp() {
+        guard !appStarted else { return }
+        appStarted = true
+
+        statusItemController = StatusItemController(model: model, settings: settings, updates: updates)
         statusItemController?.onOpenSetup = { [weak self] in self?.setupWindow?.show() }
-        if !settings.setupDone { setupWindow?.show() }
 
         // The music players are only read while the notch is on and used. Both publishers emit their current value first.
         settings.$showNotch.combineLatest(settings.$usageMode)
@@ -47,6 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] mode in self?.applyHeadphones(mode.usesHeadphones) }
             .store(in: &cancellables)
+
         updates.start()
     }
 
