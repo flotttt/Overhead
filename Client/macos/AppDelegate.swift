@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // The notch is always built but only shows itself when the settings say so: on its own it
         // touches neither Bluetooth nor the music players.
         notchController = NotchController(model: model, music: music, settings: settings)
-        setupWindow = SetupWindowController(model: model, settings: settings,
+        setupWindow = SetupWindowController(model: model, settings: settings, music: music,
                                             onPlayerGranted: { [weak self] in self?.music.refresh() },
                                             onFinished: { [weak self] in self?.startApp() })
         if settings.setupDone {

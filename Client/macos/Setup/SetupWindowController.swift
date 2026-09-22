@@ -6,14 +6,16 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
     private let checks = SetupChecks()
     private let model: HeadphonesModel
     private let settings: AppSettings
+    private let music: MusicController
     private let onFinished: () -> Void
     private var window: NSWindow?
     private var builtRevisiting: Bool?   // the view is built for one mode; setupDone flips it once
 
-    init(model: HeadphonesModel, settings: AppSettings, onPlayerGranted: @escaping () -> Void,
-         onFinished: @escaping () -> Void) {
+    init(model: HeadphonesModel, settings: AppSettings, music: MusicController,
+         onPlayerGranted: @escaping () -> Void, onFinished: @escaping () -> Void) {
         self.model = model
         self.settings = settings
+        self.music = music
         self.onFinished = onFinished
         checks.onPlayerGranted = onPlayerGranted
     }
@@ -50,7 +52,7 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
     // Closing early is not finishing: with no menu bar icon there would be no way back to the app,
     // so it quits. The setup starts over at the next launch.
     private func makeView() -> SetupView {
-        SetupView(checks: checks, model: model, settings: settings,
+        SetupView(checks: checks, model: model, settings: settings, music: music,
                   revisiting: settings.setupDone,
                   showError: { [weak model] in model?.showError($0) },
                   finish: { [weak self] in self?.finish() })

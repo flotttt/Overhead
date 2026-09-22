@@ -6,15 +6,17 @@ struct SetupView: View {
     @ObservedObject var checks: SetupChecks
     @ObservedObject var model: HeadphonesModel
     @ObservedObject var settings: AppSettings
+    let music: MusicController
     let showError: (String) -> Void
     let finish: () -> Void
     @State private var flow: SetupFlow
 
-    init(checks: SetupChecks, model: HeadphonesModel, settings: AppSettings, revisiting: Bool,
-         showError: @escaping (String) -> Void, finish: @escaping () -> Void) {
+    init(checks: SetupChecks, model: HeadphonesModel, settings: AppSettings, music: MusicController,
+         revisiting: Bool, showError: @escaping (String) -> Void, finish: @escaping () -> Void) {
         self.checks = checks
         self.model = model
         self.settings = settings
+        self.music = music
         self.showError = showError
         self.finish = finish
         _flow = State(initialValue: SetupFlow(mode: settings.usageMode, revisiting: revisiting))
@@ -86,7 +88,9 @@ struct SetupView: View {
             ModeStepView(settings: settings)
         case .permissions:
             PermissionsStepView(checks: checks, model: model, settings: settings)
-        case .notch, .headphones:
+        case .notch:
+            NotchStepView(settings: settings, music: music)
+        case .headphones:
             Text(tr("Coming next."))
         case .done:
             DoneStepView(settings: settings, showError: showError)

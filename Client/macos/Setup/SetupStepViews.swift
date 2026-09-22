@@ -151,3 +151,53 @@ struct DoneStepView: View {
         }
     }
 }
+
+// The notch step tunes the notch while showing it: the preview is the real thing, driven by
+// settings.notchPreviewing, exactly like the Notch Size submenu in the menu.
+struct NotchStepView: View {
+    @ObservedObject var settings: AppSettings
+    let music: MusicController
+    @State private var musicStarted = false
+
+    private let points: (Double) -> String = { String(Int($0.rounded())) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(tr("Notch Size")).font(.headline)
+            VStack(spacing: 4) {
+                NotchSizeRow(settings: settings, title: tr("Open Width"), keyPath: \.notchWidth,
+                             range: NotchLayout.widthRange, format: points)
+                NotchSizeRow(settings: settings, title: tr("Open Height"), keyPath: \.notchHeight,
+                             range: NotchLayout.heightRange, format: points)
+                NotchSizeRow(settings: settings, title: tr("Closed Width"), keyPath: \.notchSideWidth,
+                             range: NotchLayout.sideRange, format: points)
+                Divider().padding(.vertical, 4)
+                Toggle(tr("Glow"), isOn: $settings.artworkGlow)
+                    .toggleStyle(.switch)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                Toggle(tr("Progress Ring"), isOn: $settings.progressRing)
+                    .toggleStyle(.switch)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+            }
+            .padding(.vertical, 10)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(nsColor: .separatorColor)))
+            Text(tr("Adjust while watching the notch above."))
+                .font(.footnote)
+                .foregroundColor(.secondary)
+        }
+        .onAppear {
+            settings.notchPreviewing = true
+            // The setup runs before the app starts, so nothing reads the players yet: without this the
+            // preview would show an empty notch.
+            if !musicStarted { music.start(); musicStarted = true }
+        }
+        .onDisappear {
+            settings.notchPreviewing = false
+            // Revisiting happens on a running app: leave its music alone.
+            if musicStarted && !settings.setupDone { music.stop(); musicStarted = false }
+        }
+    }
+}
