@@ -18,9 +18,13 @@ Apple Music, and (experimental) Deezer, YouTube Music or your browser.
 The notch player stands on its own: no Sony headphones, no Bluetooth, no account. Any MacBook with a notch will
 do, and on a screen without one it shows up as a black pill at the top.
 
+<p align="center"><a href="https://overhead.flowwwmulti.fr"><strong>overhead.flowwwmulti.fr</strong></a></p>
+
 <p align="center"><img src=".github/media/notch-open.gif" width="640" alt="The notch opening into a music player, then closing"></p>
 
 ## Install
+
+The [website](https://overhead.flowwwmulti.fr) shows what the app does before you install it.
 
 ### With Homebrew
 
